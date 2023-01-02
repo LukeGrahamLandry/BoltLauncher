@@ -5,35 +5,26 @@ List<String> _full_command_help_text = """
 
 Lists all existing profile names and install locations
 
-## create
-
-Creates a new profile with no mods. 
-
-Usage: 
-	bolt create <name> <modloader> <version>
-Arguments:
-	name
-		a unique identifier for the profile
-	modloader
-		"vanilla" or "forge" or "fabric" or "quilt"
-	version
-		"a.b.c"
-	--location "[BOLT_LAUNCHER_FOLDER]/instances/[NAME]"
-		location for the install
-
 ## install 
 
-Creates a new profile with a modpack installed.
+Installs minecraft. 
 
 Usage:
-	bolt install <name> <url>
+	bolt install 
 Arguments: 
-	name
-		a unique identifier for the profile
-	url
+	--name
+		a unique identifier for a profile to create. wrap in quotes to use spaces
+  --version
+    "a.b.c"
+  --loader
+    "vanilla" or "forge" or "fabric" or "quilt"
+	--url
 		a modpack from modrinth or curseforge or nebula
 	--path "[BOLT_LAUNCHER_FOLDER]/instances/[NAME]"
 		location for the minecraft folder 
+
+Specify (--url and --name) to install a mod pack to a new profile. 
+Specify (--loader, --version, and --name) to create an empty profile. 
 
 ## login
 
@@ -94,10 +85,26 @@ Usage:
 Arguments:
 	name
 		unique identifier of the profile to modify (use 'list' for options)
+Flags:
 	--force
 		redownload all mods even if we thing we already have them
-    --check
-        does not actually install the update. just tells you if there is one
+  --check
+    does not actually install the update. just tells you if there is one
+
+## clear
+
+Removes downloaded data specified by arguments. 
+The game will take much longer to start the first time after running this. 
+
+Usage:
+	bolt clear confirm
+Flags:
+  --metadata
+    deletes cached metadata json files
+  --jars
+    deletes downloaded jar files (game client and libraries)
+  --all
+    deletes everything --jars, --metadata
 
 ## help
 
@@ -132,35 +139,39 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 
 For more information, please refer to <http://unlicense.org/>
-""".split("\n");
+"""
+    .split("\n");
 
-String getHelp(String command){
-    String text = "";
-    bool found = false;
-    bool printing = false;
-    List<String> programs = List.empty(growable: true);
+String getHelp(String command) {
+  String text = "";
+  bool found = false;
+  bool printing = false;
+  List<String> programs = List.empty(growable: true);
 
-    _full_command_help_text.forEach((line) {
-        if (line != "" && line[0] == "#"){
-            String title = line.replaceAll("#", "").replaceAll(" ", "").replaceAll("\n", "");
-            programs.add(title);
-            if (printing || (found && !printing)) {
-                printing = false;
-                return;
-            }
-            
-            if (title == command){
-                found = true;
-                printing = true;
-            }
-        } else if (printing) {
-            text += "$line\n";
-        }
-    });
+  _full_command_help_text.forEach((line) {
+    if (line != "" && line[0] == "#") {
+      String title =
+          line.replaceAll("#", "").replaceAll(" ", "").replaceAll("\n", "");
+      programs.add(title);
+      if (printing || (found && !printing)) {
+        printing = false;
+        return;
+      }
 
-    if (command == "help"){
-        text = "${text.trim()}\nCommands: $programs";
+      if (title == command) {
+        found = true;
+        printing = true;
+      }
+    } else if (printing) {
+      text += "$line\n";
     }
+  });
 
-    return found ? text.trim() : "Sorry, $command is not a recognized bolt command.";
+  if (command == "help") {
+    text = "${text.trim()}\nCommands: $programs";
+  }
+
+  return found
+      ? text.trim()
+      : "Sorry, $command is not a recognized bolt command.";
 }

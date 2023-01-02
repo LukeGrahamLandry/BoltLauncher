@@ -46,21 +46,21 @@ class VanillaInstaller {
 	Future<void> download(vanilla.VersionFiles data) async {
 		for (var lib in data.libraries) {
 			if (lib.downloads.artifact.sha1 == manifest.vanillaLibs[lib.name]){
-				print("skip (already downloaded) ${lib.name}");
+				print("skip (cache) ${lib.name}");
 			} else if (!ruleMatches(lib.rules)) {
-				print("skip (rule failed) ${lib.name}");
+				print("skip (rule) ${lib.name}");
 			} else {
 				print("downloading ${lib.name}");
-        downloadLibrary(lib.downloads.artifact, p.join(Constants.dataDirectory, "install", "libraries", lib.downloads.artifact.path));
+        await downloadLibrary(lib.downloads.artifact, p.join(Constants.installDirectory, "libraries", lib.downloads.artifact.path));
 				manifest.vanillaLibs[lib.name] = lib.downloads.artifact.sha1;
 			}
 		}
 
 		if (data.downloads.client.sha1 == manifest.vanillaLibs["client-$versionId"]){
-			print("skip (already downloaded)");
+			print("skip (cache) client-$versionId");
 		} else {
-			print("downloading client");
-      downloadLibrary(data.downloads.client, p.join(Constants.dataDirectory, "install", "versions", versionId, "$versionId.jar"));
+			print("downloading client-$versionId");
+      await downloadLibrary(data.downloads.client, p.join(Constants.installDirectory, "versions", versionId, "$versionId.jar"));
 			manifest.vanillaLibs["client-$versionId"] = data.downloads.client.sha1;
 		}
 	}
@@ -78,7 +78,7 @@ class VanillaInstaller {
   bool ruleMatches(List<vanilla.Rule>? rules){
     if (rules == null) return true;
 
-		for (var rule in rules!){
+		for (var rule in rules){
 			if (rule.action == "allow"){
 				// TODO
 				if ((rule.os?.name ?? "osx") != "osx") return false;

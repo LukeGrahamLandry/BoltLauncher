@@ -4,15 +4,28 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class Constants {
-    static String get dataDirectory {
-        return Platform.environment["BOLT_LAUNCHER_FOLDER"] ?? "~/bolt-launcher";
-    }
 
-    static String get profilesFile {
-        return path.join(dataDirectory, "profiles.json");
-    }
+  static String get dataDirectory {
+      return Platform.environment["BOLT_LAUNCHER_FOLDER"] ?? "~/bolt-launcher";
+  }
 
-    static MetaSources metaSources = MetaSources();
+  static String get profilesFile {
+      return path.join(dataDirectory, "profiles.json");
+  }
+
+  static String get installDirectory {
+    return path.join(dataDirectory, "install");
+  }
+
+  static String get metadataCacheDirectory {
+    return path.join(dataDirectory, "metadata");
+  }
+
+  static String get manifestFile {
+    return path.join(installDirectory, "manifest.json");
+  }
+
+  static MetaSources metaSources = MetaSources();
 }
 
 class MetaSources {
@@ -20,17 +33,17 @@ class MetaSources {
 }
 
 Future<Map<String, dynamic>> cachedFetch(String url, String filename) async {
-    var file = File(path.join(Constants.dataDirectory, "cache", filename));
+    var file = File(path.join(Constants.metadataCacheDirectory, filename));
     if (!(await file.exists())){
         await file.create(recursive: true);
         var response = await http.get(Uri.parse(url));
         if (response.statusCode != 200) {
             throw Exception('Failed to load $url');  // TODO
         } 
-        file.writeAsString(response.body);
+        await file.writeAsString(response.body);
 
-        var sources = File(path.join(Constants.dataDirectory, "cache", "sources.txt"));
-        sources.writeAsString("$url\n", mode: FileMode.append);
+        var sources = File(path.join(Constants.metadataCacheDirectory, "sources.txt"));
+        await sources.writeAsString("$url\n", mode: FileMode.append);
     }
 
     return jsonDecode(await file.readAsString());

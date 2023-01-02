@@ -11,8 +11,6 @@ part 'manifiest.g.dart';
 
 @JsonSerializable(explicitToJson: true, includeIfNull: true)
 class PastDownloadManifest {
-	static String filename = "manifest.json";
-
     Map<String, String> vanillaLibs;  // name -> sha1
     Map<int, int> curseforge;  // project id -> file id
     Map<String, String> modrinth;  // project id -> file id
@@ -27,12 +25,12 @@ class PastDownloadManifest {
 	}
 
 	static Future<PastDownloadManifest> load({String? path}) async {
-    path ??= p.join(Constants.dataDirectory, "cache", filename);
+    path ??= Constants.manifestFile;
 		return PastDownloadManifest.fromJson(await jsonObjectFile(path, PastDownloadManifest.empty()));
 	}
 
 	Future<void> save({String? path}) async {
-    path ??= p.join(Constants.dataDirectory, "cache", filename);
+    path ??= Constants.manifestFile;
 		await writeJsonObjectFile(path, toJson());
 	}
 }

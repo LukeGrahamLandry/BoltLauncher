@@ -17,8 +17,12 @@ Future<Map<String, String>> getProfiles() async {
 
 class MinecraftProfile {
     String? source; 
+    String loader;
+    String version;
     double? maxRam;
     double? minRam;
     String? jvmPath;
     String? jvmArgs;
+
+    MinecraftProfile(this.source, this.loader, this.version, this.maxRam, this.minRam, this.jvmArgs, this.jvmPath);
 }

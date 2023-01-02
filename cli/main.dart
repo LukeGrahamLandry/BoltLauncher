@@ -1,10 +1,13 @@
+import 'commands/clear.dart';
 import 'commands/help.dart';
 import 'package:bolt_launcher/bolt_launcher.dart';
+import 'dart:io';
+import 'package:path/path.dart' as p;
+import 'package:args/args.dart';
+
+import 'commands/install.dart';
 
 Future<void> main(List<String> arguments) async {
-    installVanilla("1.19.2");
-
-    return;
     String program = arguments.isEmpty ? "help" : arguments[0];
 
     if (program == "list"){
@@ -21,17 +24,6 @@ Future<void> main(List<String> arguments) async {
         return;
     }
 
-    // TODO: be aware of optional --named flags
-    if (program == "create") arguments.length == 4 ? installEmptyProfile(arguments[1], arguments[2], arguments[3]) : getHelp(program);
-    if (program == "install") arguments.length == 3 ? installProfileFromUrl(arguments[1], arguments[2]) : getHelp(program);
-    
-}
-
-
-void installEmptyProfile(String name, String loader, String version) {
-
-}
-
-void installProfileFromUrl(String name, String url) {
-
+    if (program == "clear" && arguments[1] == "confirm") clearCommand(arguments);
+    if (program == "install") installCommand(arguments);
 }
