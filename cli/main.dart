@@ -2,8 +2,7 @@ import 'commands/help.dart';
 import 'package:bolt_launcher/bolt_launcher.dart';
 
 Future<void> main(List<String> arguments) async {
-    var versions = VanillaVersionList(await cachedFetch(Constants.metaSources.vanillaVersions, "vanilla-versions.json"));
-    
+    installVanilla("1.12.2");
     return;
 
     String program = arguments.isEmpty ? "help" : arguments[0];

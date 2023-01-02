@@ -7,7 +7,10 @@ BoltLauncher also provides a command line program. This is how I test during dev
 Although it's not the friendliest interface for players to use directly, it could be used to build a minecraft launcher with any UI framework. You'd just bundle bolt with your application and call the commands based on the user's input. Bolt 
 can handle everything behind the scenes and you can focus on providing a great interface. 
 
-## Build (Command Line App)
+## Developing 
 
 - [Install the Dart SDK](https://dart.dev/get-dart)
-- `dart compile exe cli/main.dart -o bolt`
+- Run code generation: (for json parsing)
+    - one time: `dart run build_runner build --delete-conflicting-outputs`
+    - continuous: `dart run build_runner watch --delete-conflicting-outputs`
+- Build command line app: `dart compile exe cli/main.dart -o bolt`

@@ -9,8 +9,13 @@ build/
 # https://dart.dev/guides/libraries/private-files#pubspeclock.
 pubspec.lock
 
-
+.DS_Store
 instance
 env
 test
 bolt
+
+# dart run build_runner build
+**/*.g.dart
+
+docs
