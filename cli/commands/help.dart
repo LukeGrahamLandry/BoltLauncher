@@ -18,7 +18,7 @@ Arguments:
 		"vanilla" or "forge" or "fabric" or "quilt"
 	mc_version
 		"a.b.c"
-	--location "~/bolt-launcher"
+	--location "[BOLT_LAUNCHER_FOLDER]/instances/[NAME]"
 		location for the install
 
 ## install 
@@ -32,7 +32,7 @@ Arguments:
 		a unique identifier for the profile
 	url
 		a modpack from modrinth or curseforge or nebula
-	--path "~/bolt-launcher/installs/[NAME]"
+	--path "[BOLT_LAUNCHER_FOLDER]/instances/[NAME]"
 		location for the minecraft folder 
 
 ## login
@@ -63,24 +63,27 @@ Usage:
 Arguments:
 	name
 		unique identifier of the profile to modify (use 'list' for options)
-	--ram
-	--jvm-path
-	--jvm-args
 	--source
-	--path "~/bolt-launcher/installs/[NAME]"
-		location of the minecraft folder 
+        the url to retrieve mods from. after updating see 'bolt update'
+	--path "[BOLT_LAUNCHER_FOLDER]/instances/[NAME]"
+		location of the minecraft folder. remember to update this if you move the folder 
+	--maxRam
+	--minRam
+	--jvmPath
+	--jvmArgs
 
 
 Set or get a global option
 
 Usage:
 	bolt settings --key value
-	'bolt settings --key' 
+	bolt settings --key
 Arguments:
-	--meta-source "https/github/lukegrahamlandry/bolt/meta/sources.json"
-		 define where to find all urls for meta data
-	--microsoft-key ""
-	--root "~/bolt-launcher"
+	--metaSource "https/github/lukegrahamlandry/bolt/meta/sources.json"
+	    define where to find all urls for meta data
+	--microsoftKey ""
+
+BOLT_LAUNCHER_FOLDER environment variable determines where data is stored. 
 
 ## update 
 
@@ -93,23 +96,42 @@ Arguments:
 		unique identifier of the profile to modify (use 'list' for options)
 	--force
 		redownload all mods even if we thing we already have them
+    --check
+        does not actually install the update. just tells you if there is one
 
 ## help
 
 BoltLauncher is a command line modpack manager. It will help you install and launch Minecraft. 
-View the code on github: https://github.com/LukeGrahamLandry/BoltLauncher
-The location of most data on your machine is {$default_path}.
+Source code: https://github.com/LukeGrahamLandry/BoltLauncher
+
 Use a command with no arguments for more detailed help.
 
 ## license
 
-Copyright 2023 LukeGrahamLandry
+This is free and unencumbered software released into the public domain.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+Anyone is free to copy, modify, publish, use, compile, sell, or
+distribute this software, either in source code form or as a compiled
+binary, for any purpose, commercial or non-commercial, and by any
+means.
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+In jurisdictions that recognize copyright laws, the author or authors
+of this software dedicate any and all copyright interest in the
+software to the public domain. We make this dedication for the benefit
+of the public at large and to the detriment of our heirs and
+successors. We intend this dedication to be an overt act of
+relinquishment in perpetuity of all present and future rights to this
+software under copyright law.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+
+For more information, please refer to <http://unlicense.org/>
 """.split("\n");
 
 String getHelp(String command){
@@ -137,7 +159,7 @@ String getHelp(String command){
     });
 
     if (command == "help"){
-        text += "Commands: $programs";
+        text = "${text.trim()}\nCommands: $programs";
     }
 
     return found ? text.trim() : "Sorry, $command is not a recognized bolt command.";
