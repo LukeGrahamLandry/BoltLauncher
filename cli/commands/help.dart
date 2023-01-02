@@ -10,13 +10,13 @@ Lists all existing profile names and install locations
 Creates a new profile with no mods. 
 
 Usage: 
-	bolt create <name> <modloader> <mc_version>
+	bolt create <name> <modloader> <version>
 Arguments:
 	name
 		a unique identifier for the profile
 	modloader
 		"vanilla" or "forge" or "fabric" or "quilt"
-	mc_version
+	version
 		"a.b.c"
 	--location "[BOLT_LAUNCHER_FOLDER]/instances/[NAME]"
 		location for the install
@@ -48,7 +48,7 @@ Forget your Microsoft account. You will have to login again to play.
 Starts the game.
 
 Usage:
-	bolt settings <name> 
+	bolt launch <name> 
 Arguments:
 	name
 		unique identifier of the profile to modify (use 'list' for options)
