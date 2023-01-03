@@ -10,7 +10,8 @@ void installCommand(List<String> arguments) async {
                     ..addOption("loader", abbr: 'l', defaultsTo: "vanilla")
                     ..addOption("url", abbr: 'u')
                     ..addOption("name", abbr: 'n')
-                    ..addOption("path", abbr: 'p', defaultsTo: "[BOLT_LAUNCHER_FOLDER]/instances/[NAME]");
+                    ..addOption("path", abbr: 'p', defaultsTo: "[BOLT_LAUNCHER_FOLDER]/instances/[NAME]")
+                    ..addFlag("hashChecking", negatable: true, defaultsTo: true);
 
   ArgResults args = parser.parse(arguments);
   String path = (args["path"] as String).replaceAll("[BOLT_LAUNCHER_FOLDER]", Constants.dataDirectory).replaceAll("[NAME]", args["name"] ?? "");
@@ -24,9 +25,7 @@ void installCommand(List<String> arguments) async {
   } 
   
   else if (args.wasParsed("version")) {
-    await installMinecraft(args["loader"], args["version"]);
-    print("");
-    print("Minecraft ${args["loader"]} ${args["version"]} has been installed.");
+    await installMinecraft((args["loader"] as String).toLowerCase(), args["version"], args["hashChecking"]);
     if (args.wasParsed("name")){
       await createEmptyProfile(args["name"], args["loader"], args["version"]);
     } else {
@@ -39,9 +38,20 @@ void installCommand(List<String> arguments) async {
   }
 }
 
-Future<void> installMinecraft(String loader, String version) async {
+Future<void> installMinecraft(String loader, String version, bool hashChecking) async {
   if (loader == "vanilla") {
-    await VanillaInstaller(version).install();
+    var installer = VanillaInstaller(version, hashChecking: hashChecking);
+    await installer.install();
+    print("");
+    if (installer.errors.isEmpty){
+      print("Minecraft $loader $version has been installed.");
+    } else {
+      print("=== ERROR ===");
+      print("${installer.errors.length} files were not downloaded because they did not match the expected hash.");
+      print("Use the 'settings' command to change your metadata server and try again.");
+      print("Or, run again with (--no-hashChecking) to ignore these errors and force download. This is probably a very bad idea.");
+      print("");
+    }
   } else {
     print("Sorry, $loader is not a recognized mod loader. Try 'vanilla'");
   }

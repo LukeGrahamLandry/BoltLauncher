@@ -33,17 +33,25 @@ class MetaSources {
 }
 
 Future<Map<String, dynamic>> cachedFetch(String url, String filename) async {
+    var sourcesPath = path.join(Constants.metadataCacheDirectory, "sources.json");
+    var sources = await jsonObjectFile(sourcesPath, {});
     var file = File(path.join(Constants.metadataCacheDirectory, filename));
-    if (!(await file.exists())){
+
+    bool needsFetch = !(await file.exists()) || (sources[filename] != url && sources[filename] != "");
+    if (needsFetch){
         await file.create(recursive: true);
+        print("Fetching $url");
         var response = await http.get(Uri.parse(url));
         if (response.statusCode != 200) {
             throw Exception('Failed to load $url');  // TODO
         } 
         await file.writeAsString(response.body);
 
-        var sources = File(path.join(Constants.metadataCacheDirectory, "sources.txt"));
-        await sources.writeAsString("$url\n", mode: FileMode.append);
+        
+        sources[filename] = url;
+        await writeJsonObjectFile(sourcesPath, sources);   
+    } else {
+      print("Using cached $filename");
     }
 
     return jsonDecode(await file.readAsString());
