@@ -18,7 +18,7 @@ part 'cache.g.dart';
 @JsonSerializable(explicitToJson: true, includeIfNull: true)
 class PastDownloadManifest {
     Map<String, String> vanillaLibs;  // name -> sha1
-    Map<int, int> curseforge;  // project id -> file id
+    Map<String, String> curseforge;  // project-file -> download url
     Map<String, String> modrinth;  // project id -> file id
 
     PastDownloadManifest(this.vanillaLibs, this.curseforge, this.modrinth);
@@ -30,14 +30,12 @@ class PastDownloadManifest {
 		return PastDownloadManifest({}, {}, {}).toJson();
 	}
 
-	static Future<PastDownloadManifest> load({String? path}) async {
-    path ??= Locations.manifestFile;
-		return PastDownloadManifest.fromJson(await jsonObjectFile(path, PastDownloadManifest.empty()));
+	static Future<PastDownloadManifest> load() async {
+		return PastDownloadManifest.fromJson(await jsonObjectFile(Locations.manifestFile, PastDownloadManifest.empty()));
 	}
 
-	Future<void> save({String? path}) async {
-    path ??= Locations.manifestFile;
-		await writeJsonObjectFile(path, toJson());
+	Future<void> save() async {
+		await writeJsonObjectFile(Locations.manifestFile, toJson());
 	}
 }
 

@@ -81,16 +81,24 @@ Arguments:
     url. source for the vanilla game files. 
   --prismLike
     url. use meta format of MultiMC/PolyMC/PrismLauncher instead of all options above (overrides them if set).
+  --curseMaven
+    url.
+  --curseforgeApi
+    url.
+  --curseforgeApiKey
+    key for accessing the official curseforge api. 
   --updatesFeed
     url.
   --azureAuth
+    url.
+  --azureAuthKey
     key to use for microsoft login. players are trusting the owner of this key with access to accounts. 
   --vulnerabilityChecks
     bool.
   --password
     set a password that must be included with any future commands (using the --pw option). 
 
-For api scheme details see: https://github.com/LukeGrahamLandry/BoltLauncher/tree/main/docs/meta-formats
+For api scheme details see: https://github.com/LukeGrahamLandry/BoltLauncher/tree/main/docs/api-formats
 The BOLT_LAUNCHER_FOLDER environment variable determines where data is stored. 
 
 ## update 

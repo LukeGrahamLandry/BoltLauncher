@@ -1,3 +1,4 @@
+import 'package:bolt_launcher/src/install/mods/curseforge.dart';
 import 'package:bolt_launcher/src/launch.dart';
 
 import 'commands/clear.dart';
@@ -19,6 +20,11 @@ Future<void> main(List<String> arguments) async {
             print("$key: $value");
         });
         return;
+    }
+
+    if (program == "mod") {
+      downloadFromCurseMaven("267602", "2642375", "instance/mods");
+      return;
     }
 
     if (arguments.length <= 1) {

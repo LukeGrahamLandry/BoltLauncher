@@ -11,6 +11,7 @@ class GlobalOptions {
 
 class MetaSources {
   String vanillaVersions = "https://launchermeta.mojang.com/mc/game/version_manifest.json";
+  String curseMaven = "https://www.cursemaven.com/test/";
 
   MetaSources(this.vanillaVersions);
 
