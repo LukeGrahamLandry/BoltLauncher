@@ -50,7 +50,9 @@ Set or get an option value for a given profile
 
 Usage:
 	bolt settings <name> --key value
-	bolt settings <name> --key
+    set a value
+	bolt settings <name> get
+    display current values
 Arguments:
 	name
 		unique identifier of the profile to modify (use 'list' for options)
@@ -63,18 +65,33 @@ Arguments:
 	--jvmPath
 	--jvmArgs
 
+## meta
 
-Set or get a global option
+Global configuration. 
+Ensure you trust the owners of all urls used. 
+Executable files will be downloaded from metadata sources and run.
 
 Usage:
-	bolt settings --key value
-	bolt settings --key
-Arguments:
-	--metaSource "https/github/lukegrahamlandry/bolt/meta/sources.json"
-	    define where to find all urls for meta data
-	--microsoftKey ""
+	bolt meta --key value
+    set a value
+	bolt meta get
+    display current values
+Arguments: 
+  --vanillaVersions
+    url. source for the vanilla game files. 
+  --prismLike
+    url. use meta format of MultiMC/PolyMC/PrismLauncher instead of all options above (overrides them if set).
+  --updatesFeed
+    url.
+  --azureAuth
+    key to use for microsoft login. players are trusting the owner of this key with access to accounts. 
+  --vulnerabilityChecks
+    bool.
+  --password
+    set a password that must be included with any future commands (using the --pw option). 
 
-BOLT_LAUNCHER_FOLDER environment variable determines where data is stored. 
+For api scheme details see: https://github.com/LukeGrahamLandry/BoltLauncher/tree/main/docs/meta-formats
+The BOLT_LAUNCHER_FOLDER environment variable determines where data is stored. 
 
 ## update 
 

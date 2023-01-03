@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:io' show File;
+import 'package:bolt_launcher/bolt_launcher.dart';
+
 import '../util/manifiest.dart';
 
 import '../constants.dart';
@@ -55,46 +57,57 @@ class VanillaInstaller {
   }
 
 	Future<void> download(vanilla.VersionFiles data) async {
-		for (var lib in data.libraries) {
-      if (!ruleMatches(lib.rules)) {
-				print("skip (rule) ${lib.name}");
-        continue;
-			}
+    var clientLib = vanilla.Library("client-$versionId", vanilla.LibraryDownloads(data.downloads.client), null);
+    clientLib.downloads.artifact.path = p.join(Constants.installDirectory, "versions", versionId, "$versionId.jar");
+    List<vanilla.Library> allLibs = data.libraries..add(clientLib);
 
-      String path = p.join(Constants.installDirectory, "libraries", lib.downloads.artifact.path);
-      if (await isCached(lib.downloads.artifact.sha1, lib.name, path)){
-        print("skip (cache) ${lib.name}");
-        continue;
-      }
+    // benchmark vanilla 1.19.2 2023-01-02
+    // sync (awaiting each library download in a for loop): 14.857 seconds
+    // async (current code): 10.758 seconds
+    print("Checking Minecraft Libraries...");
+    int startTime = DateTime.now().millisecondsSinceEpoch;
+    await Future.wait(allLibs.map((lib) => handleLibraryDownload(data, lib)));
+    int endTime = DateTime.now().millisecondsSinceEpoch;
 
-			print("downloading ${lib.name}");
-      if (await downloadLibrary(lib.downloads.artifact, path)){
-        manifest.vanillaLibs[lib.name] = lib.downloads.artifact.sha1;
-      }
-		}
-
-    String path = p.join(Constants.installDirectory, "versions", versionId, "$versionId.jar");
-		if (await isCached(data.downloads.client.sha1, "client-$versionId", path)){
-			print("skip (cache) client-$versionId");
-		} else {
-			print("downloading client-$versionId");
-      if (await downloadLibrary(data.downloads.client, path)) {
-        manifest.vanillaLibs["client-$versionId"] = data.downloads.client.sha1;
-      }
-		}
+    print("Checked ${allLibs.length} libraries in ${(endTime - startTime) / 1000} seconds");
 	}
 
+  Future<void> handleLibraryDownload(vanilla.VersionFiles data, vanilla.Library lib) async {
+    if (!ruleMatches(lib.rules)) {
+      print("skip (rule) ${lib.name}");
+      return;
+    }
+
+    String path = p.join(Constants.installDirectory, "libraries", lib.downloads.artifact.path);
+    if (await isCached(lib.downloads.artifact.sha1, lib.name, path)){
+      print("skip (cache) ${lib.name}");
+      return;
+    }
+
+    if (await downloadLibrary(lib.downloads.artifact, path)){
+      manifest.vanillaLibs[lib.name] = lib.downloads.artifact.sha1;
+      print("downloaded ${lib.name}");
+    }
+  }
+  
   /// Checks that a file exists at [path] and [wantedHash] matches the one in the manifest for [name]
   Future<bool> isCached(String wantedHash, String name, String path) async {
     String? manifestHash = manifest.vanillaLibs[name];
     if (manifestHash == null) return false;
 
-    bool cachedFileMatches = wantedHash == manifestHash;
-    if (cachedFileMatches){
-      bool filePresent = await File(path).exists();
-      if (filePresent){
-        return true;
+    // benchmark vanilla 1.19.2 2023-01-02
+    // saved hash: 0.004 seconds
+    // computing hash: 0.603 seconds
+
+    var file = File(path);
+    bool filePresent = await file.exists();
+    if (filePresent){
+      if (Constants.recomputeHashesOnStart){
+        var bytes = await file.readAsBytes();
+        var manifestHash = sha1.convert(await File(path).readAsBytes()).toString();
       }
+      
+      return manifestHash == wantedHash;
     }
 
     return false;

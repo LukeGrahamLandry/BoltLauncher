@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class Constants {
+  static bool recomputeHashesOnStart = false;
+
 
   static String get dataDirectory {
       return Platform.environment["BOLT_LAUNCHER_FOLDER"] ?? "~/bolt-launcher";
