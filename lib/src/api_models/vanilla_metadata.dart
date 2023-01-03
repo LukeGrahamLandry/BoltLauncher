@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-part 'vanilla.g.dart';
+part 'vanilla_metadata.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class Version {

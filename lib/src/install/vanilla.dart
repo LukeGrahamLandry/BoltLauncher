@@ -2,13 +2,13 @@ import 'dart:convert';
 import 'dart:io' show File, Platform;
 import 'package:bolt_launcher/bolt_launcher.dart';
 
-import '../util/manifiest.dart';
-
-import '../constants.dart';
+import '../data/cache.dart';
+import '../data/locations.dart';
+import '../data/options.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:path/path.dart' as p;
 import 'package:http/http.dart' as http;
-import 'model/vanilla.dart' as vanilla;
+import '../api_models/vanilla_metadata.dart' as vanilla;
 import 'package:crypto/crypto.dart';
 
 void installVanilla(String versionId) async {
@@ -47,7 +47,7 @@ class VanillaInstaller {
 	}
 
   Future<vanilla.VersionFiles?> getMetadata() async {
-    var versionData = vanilla.VersionList.fromJson(await cachedFetch(Constants.metaSources.vanillaVersions, "vanilla-versions.json"));
+    vanilla.VersionList versionData = await MetadataCache.vanillaVersions;
 		for (var version in versionData.versions){
         if (version.id == versionId) {
           var libs = vanilla.VersionFiles.fromJson(await cachedFetch(version.url, "vanilla-${version.id}.json"));
@@ -59,7 +59,7 @@ class VanillaInstaller {
 
 	Future<void> download(vanilla.VersionFiles data) async {
     var clientLib = vanilla.Library("client-$versionId", vanilla.LibraryDownloads(data.downloads.client, null), null, null);
-    clientLib.downloads.artifact.path = p.join(Constants.installDirectory, "versions", versionId, "$versionId.jar");
+    clientLib.downloads.artifact.path = p.join(Locations.installDirectory, "versions", versionId, "$versionId.jar");
     List<vanilla.Library> allLibs = data.libraries..add(clientLib);
 
     // benchmark vanilla 1.19.2 2023-01-02
@@ -89,7 +89,7 @@ class VanillaInstaller {
         print(nativesArtifact);
         if (nativesArtifact != null){
           await handleArtifactDownload(nativesArtifact);
-          String path = p.join(Constants.installDirectory, "libraries", nativesArtifact.path);
+          String path = p.join(Locations.installDirectory, "libraries", nativesArtifact.path);
           // TODO: extract the natives into bin?
         }
       }
@@ -102,7 +102,7 @@ class VanillaInstaller {
       return;
     }
 
-    String path = p.join(Constants.installDirectory, "libraries", artifact.path);
+    String path = p.join(Locations.installDirectory, "libraries", artifact.path);
     classpath.add(path);
     if (await isCached(artifact.sha1, artifact.path!, path)){
       print("skip (cache) ${artifact.path}");
@@ -129,7 +129,7 @@ class VanillaInstaller {
     var file = File(path);
     bool filePresent = await file.exists();
     if (filePresent){
-      if (Constants.recomputeHashesOnStart){
+      if (GlobalOptions.recomputeHashesOnStart){
         var bytes = await file.readAsBytes();
         var manifestHash = sha1.convert(await File(path).readAsBytes()).toString();
       }

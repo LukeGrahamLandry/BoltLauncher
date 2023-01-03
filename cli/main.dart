@@ -1,4 +1,4 @@
-import 'package:bolt_launcher/src/launch/launch.dart';
+import 'package:bolt_launcher/src/launch.dart';
 
 import 'commands/clear.dart';
 import 'commands/help.dart';

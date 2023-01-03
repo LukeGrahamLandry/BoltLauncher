@@ -1,3 +1,5 @@
+import 'package:bolt_launcher/src/data/locations.dart';
+
 import 'help.dart';
 import 'package:bolt_launcher/bolt_launcher.dart';
 import 'dart:io';
@@ -12,10 +14,10 @@ void clearCommand(List<String> arguments) async {
 
   ArgResults args = parser.parse(arguments);
   if (args["metadata"] as bool || args["all"] as bool){
-    await Directory(Constants.metadataCacheDirectory).delete(recursive: true);
+    await Directory(Locations.metadataCacheDirectory).delete(recursive: true);
   }
   if (args["jars"] as bool || args["all"] as bool){
-    await Directory(Constants.installDirectory).delete(recursive: true);
+    await Directory(Locations.installDirectory).delete(recursive: true);
   }
 }
 

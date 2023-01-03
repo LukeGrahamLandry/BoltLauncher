@@ -14,7 +14,7 @@ void installCommand(List<String> arguments) async {
                     ..addFlag("hashChecking", negatable: true, defaultsTo: true);
 
   ArgResults args = parser.parse(arguments);
-  String path = (args["path"] as String).replaceAll("[BOLT_LAUNCHER_FOLDER]", Constants.dataDirectory).replaceAll("[NAME]", args["name"] ?? "");
+  String path = (args["path"] as String).replaceAll("[BOLT_LAUNCHER_FOLDER]", Locations.dataDirectory).replaceAll("[NAME]", args["name"] ?? "");
   
   if (args.wasParsed("url")) {
     if (args.wasParsed("name")){

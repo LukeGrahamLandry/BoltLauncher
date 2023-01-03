@@ -1,11 +1,24 @@
 # Bolt Launcher 
 
-BoltLauncher is a Dart library that handles installing and launching modded Minecraft instances. 
+BoltLauncher is split into three components. 
 
-BoltLauncher also provides a command line program. This is how I test during development. See [help.dart](cli/commands/help.dart) for details on all command line options. 
+- lib: a Dart library that handles installing and launching modded Minecraft instances. 
+- cli: a command line program, used for testing during development
+    - See [cli/README](cli/README.md) for details.
+    - See [help.dart](cli/commands/help.dart) for usage docs.
+- gui: a flutter app for launching minecraft
+    - See [gui/README](gui/README.md) for details.
 
-Although it's not the friendliest interface for players to use directly, it could be used to build a minecraft launcher with any UI framework. You'd just bundle bolt with your application and call the commands based on the user's input. Bolt 
+Although it's not the friendliest interface for players to use directly, the CLI could be used to build a minecraft launcher with any UI framework. You'd just bundle bolt with your application and call the commands based on the user's input. Bolt 
 can handle everything behind the scenes and you can focus on providing a great interface. 
+
+## Features
+
+- Install Minecraft
+    - vanilla
+    - 1.19.x
+- Install Java
+- Manage game profiles with different mods
 
 ## Developing 
 
@@ -15,3 +28,13 @@ can handle everything behind the scenes and you can focus on providing a great i
     - continuous: `dart run build_runner watch --delete-conflicting-outputs`
 - Run command line app: `dart run cli/main.dart`
 - Build command line app: `dart compile exe cli/main.dart -o bolt`
+
+## Data Location
+
+Launcher data is stored in the folder given by the `BOLT_LAUNCHER_FOLDER` environment variable. 
+
+Defaults:
+
+- MacOS: `~/Library/Application Support/BoltLauncher`
+- Windows: `~/Library/AppData/BoltLauncher`
+- Linux: `~/.BoltLauncher`
