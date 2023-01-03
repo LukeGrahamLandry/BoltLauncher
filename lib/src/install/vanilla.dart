@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:io' show File;
+import 'dart:io' show File, Platform;
 import 'package:bolt_launcher/bolt_launcher.dart';
 
 import '../util/manifiest.dart';
@@ -28,6 +28,7 @@ class VanillaInstaller {
 	late PastDownloadManifest manifest;
   List<HashError> errors = [];
   bool hashChecking;
+  List<String> classpath = [];
 
 	VanillaInstaller(this.versionId, {this.hashChecking=true});
 
@@ -57,7 +58,7 @@ class VanillaInstaller {
   }
 
 	Future<void> download(vanilla.VersionFiles data) async {
-    var clientLib = vanilla.Library("client-$versionId", vanilla.LibraryDownloads(data.downloads.client), null);
+    var clientLib = vanilla.Library("client-$versionId", vanilla.LibraryDownloads(data.downloads.client, null), null, null);
     clientLib.downloads.artifact.path = p.join(Constants.installDirectory, "versions", versionId, "$versionId.jar");
     List<vanilla.Library> allLibs = data.libraries..add(clientLib);
 
@@ -68,7 +69,6 @@ class VanillaInstaller {
     int startTime = DateTime.now().millisecondsSinceEpoch;
     await Future.wait(allLibs.map((lib) => handleLibraryDownload(data, lib)));
     int endTime = DateTime.now().millisecondsSinceEpoch;
-
     print("Checked ${allLibs.length} libraries in ${(endTime - startTime) / 1000} seconds");
 	}
 
@@ -78,21 +78,48 @@ class VanillaInstaller {
       return;
     }
 
-    String path = p.join(Constants.installDirectory, "libraries", lib.downloads.artifact.path);
-    if (await isCached(lib.downloads.artifact.sha1, lib.name, path)){
-      print("skip (cache) ${lib.name}");
+    await handleArtifactDownload(lib.downloads.artifact);
+
+    if (lib.downloads.classifiers != null && lib.natives != null){
+      for (String os in getOS()){
+        if (!lib.natives!.containsKey(os)) continue;
+        String nativesClassifier = lib.natives![os]!;
+        print(nativesClassifier);
+        vanilla.Artifact? nativesArtifact = lib.downloads.classifiers![nativesClassifier];
+        print(nativesArtifact);
+        if (nativesArtifact != null){
+          await handleArtifactDownload(nativesArtifact);
+          String path = p.join(Constants.installDirectory, "libraries", nativesArtifact.path);
+          // TODO: extract the natives into bin?
+        }
+      }
+    }
+  }
+
+  Future<void> handleArtifactDownload(vanilla.Artifact artifact) async {
+    if (artifact.path == null){
+      print("ERROR, null target path: $artifact");
       return;
     }
 
-    if (await downloadLibrary(lib.downloads.artifact, path)){
-      manifest.vanillaLibs[lib.name] = lib.downloads.artifact.sha1;
-      print("downloaded ${lib.name}");
+    String path = p.join(Constants.installDirectory, "libraries", artifact.path);
+    classpath.add(path);
+    if (await isCached(artifact.sha1, artifact.path!, path)){
+      print("skip (cache) ${artifact.path}");
+      return;
     }
+
+    if (await downloadLibrary(artifact, path)){
+      manifest.vanillaLibs[artifact.path!] = artifact.sha1;
+      print("downloaded ${artifact.path}");
+    } 
   }
+
+
   
   /// Checks that a file exists at [path] and [wantedHash] matches the one in the manifest for [name]
-  Future<bool> isCached(String wantedHash, String name, String path) async {
-    String? manifestHash = manifest.vanillaLibs[name];
+  Future<bool> isCached(String wantedHash, String relPath, String path) async {
+    String? manifestHash = manifest.vanillaLibs[relPath];
     if (manifestHash == null) return false;
 
     // benchmark vanilla 1.19.2 2023-01-02
@@ -139,10 +166,18 @@ class VanillaInstaller {
 		for (var rule in rules){
 			if (rule.action == "allow"){
 				// TODO
-				if ((rule.os?.name ?? "osx") != "osx") return false;
+        String? os = rule.os?.name;
+				if (os != null && !getOS().contains(os)) return false;
 			}
 
 		}
 		return true;
 	}
+}
+
+List<String> getOS(){
+  if (Platform.isMacOS) return ["osx", "macos"];
+  if (Platform.isWindows) return ["windows"];
+  if (Platform.isLinux) return ["linux"];
+  return [];
 }

@@ -1,3 +1,5 @@
+import 'package:bolt_launcher/src/launch/launch.dart';
+
 import 'commands/clear.dart';
 import 'commands/help.dart';
 import 'package:bolt_launcher/bolt_launcher.dart';
@@ -9,6 +11,8 @@ import 'commands/install.dart';
 
 Future<void> main(List<String> arguments) async {
     String program = arguments.isEmpty ? "help" : arguments[0];
+
+    if (program == "launch") launchMinecraft();
 
     if (program == "list"){
         (await getProfiles()).forEach((key, value) {

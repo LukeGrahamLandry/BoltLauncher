@@ -41,7 +41,11 @@ class Artifact {
 @JsonSerializable(explicitToJson: true)
 class LibraryDownloads {
     Artifact artifact;
-    LibraryDownloads(this.artifact);
+
+    // pre 1.19 only. after its handled by rules
+    Map<String, Artifact>? classifiers;
+    
+    LibraryDownloads(this.artifact, this.classifiers);
 
     factory LibraryDownloads.fromJson(Map<String, dynamic> json) => _$LibraryDownloadsFromJson(json);
     Map<String, dynamic> toJson() => _$LibraryDownloadsToJson(this);
@@ -53,7 +57,10 @@ class Library {
     String name;
     List<Rule>? rules;
 
-    Library(this.name, this.downloads, this.rules);
+    // pre 1.19 only. after its handled by rules
+    Map<String, String>? natives;
+
+    Library(this.name, this.downloads, this.rules, this.natives);
 
     factory Library.fromJson(Map<String, dynamic> json) => _$LibraryFromJson(json);
     Map<String, dynamic> toJson() => _$LibraryToJson(this);
