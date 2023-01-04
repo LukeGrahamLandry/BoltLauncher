@@ -38,7 +38,7 @@ class VanillaInstaller {
     vanilla.VersionList versionData = await MetadataCache.vanillaVersions;
 		for (var version in versionData.versions){
         if (version.id == versionId) {
-          var libs = vanilla.VersionFiles.fromJson(await cachedFetch(version.url, "vanilla-${version.id}.json"));
+          var libs = vanilla.VersionFiles.fromJson(await cachedFetchJson(version.url, "vanilla-${version.id}.json"));
           libs.downloads.client.version = versionId;
           libs.downloads.client.name = "client";
           return libs;

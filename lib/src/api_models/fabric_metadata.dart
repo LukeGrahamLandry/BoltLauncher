@@ -25,7 +25,7 @@ class LoaderVerson {
   int build;
   String maven;
   String version;
-  bool stable;
+  bool? stable;
 
   LoaderVerson(this.separator, this.build, this.maven, this.version, this.stable);
 
@@ -60,11 +60,9 @@ class VersionFiles {
 class LibraryLocation with MavenArtifact {
   String name;
   String url;
-  String? sha1Value;
 
   LibraryLocation(this.name, this.url) {
-    identifier = name;
-    repo = url;
+    init(name, url);
   }
 
   Future<LibFile> get lib async {

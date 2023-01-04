@@ -13,15 +13,27 @@ import '../api_models/vanilla_metadata.dart' as vanilla;
 import '../api_models/fabric_metadata.dart' as fabric;
 import 'package:crypto/crypto.dart';
 
-class FabricInstaller {
+mixin FabricInstallerSettings {
+  String get defaultMavenUrl => "https://maven.fabricmc.net/";
+
+  Future<fabric.VersionList> get versionListMetadata => MetadataCache.fabricVersions;
+
+  Future<fabric.VersionFiles> versionFilesMetadata(String minecraftVersion, String loaderVersion) async {
+    return fabric.VersionFiles.fromJson(await cachedFetchJson("${GlobalOptions.metadataUrls.fabric}/v1/versions/loader/$minecraftVersion/$loaderVersion", "fabric-$minecraftVersion-$loaderVersion.json"));
+  } 
+
+  String loaderName = "Fabric";
+}
+
+class FabricInstaller with FabricInstallerSettings {
 	String minecraftVersion;
-  String fabricLoaderVersion;
+  String loaderVersion;
 	late PastDownloadManifest manifest;
   late VanillaInstaller vanilla;
   
   late DownloadHelper downloadHelper;
 
-  FabricInstaller(this.minecraftVersion, this.fabricLoaderVersion) {
+  FabricInstaller(this.minecraftVersion, this.loaderVersion) {
     vanilla = VanillaInstaller(minecraftVersion);
   }
 
@@ -30,7 +42,7 @@ class FabricInstaller {
 
     var metadata = await getMetadata();
     if (metadata == null){
-			print("Fabric $minecraftVersion $fabricLoaderVersion not found.");
+			print("$loaderName $minecraftVersion $loaderVersion not found.");
 			return;
 		}
 
@@ -45,7 +57,7 @@ class FabricInstaller {
   Future<List<LibFile>> constructLibraries(fabric.VersionFiles data) async {
     List<fabric.LibraryLocation> allLibs = [...data.launcherMeta.libraries.common];
     allLibs.addAll(data.launcherMeta.libraries.client);
-    allLibs.add(fabric.LibraryLocation(data.loader.maven, "https://maven.fabricmc.net/"));  // TODO: dont hardcode url
+    allLibs.add(fabric.LibraryLocation(data.loader.maven, defaultMavenUrl));  // TODO: dont hardcode url
 
     print("Loading maven hashes.");
     List<LibFile> toDownload = await Future.wait(allLibs.map((lib) => lib.lib));
@@ -54,7 +66,7 @@ class FabricInstaller {
   }
 
   Future<fabric.VersionFiles?> getMetadata() async {
-    fabric.VersionList versionData = await MetadataCache.fabricVersions;
+    fabric.VersionList versionData = await versionListMetadata;
 
     bool mcVersionSupported = false;
     for (var version in versionData.game){
@@ -65,14 +77,13 @@ class FabricInstaller {
     }
 
     if (!mcVersionSupported){
-      print("Fabric does not support $minecraftVersion");
+      print("$loaderName does not support $minecraftVersion");
       return null;
     }
 
 		for (var version in versionData.loader){
-        if (version.version == fabricLoaderVersion) {
-          var libs = fabric.VersionFiles.fromJson(await cachedFetch("${GlobalOptions.metadataUrls.fabric}/v1/versions/loader/$minecraftVersion/$fabricLoaderVersion", "fabric-$minecraftVersion-$fabricLoaderVersion.json"));
-          return libs;
+        if (version.version == loaderVersion) {
+          return versionFilesMetadata(minecraftVersion, loaderVersion);
         }
     }
     return null;

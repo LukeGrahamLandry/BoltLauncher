@@ -13,11 +13,12 @@ class GlobalOptions {
 }
 
 class MetaSources {
-  String vanillaVersions = "https://launchermeta.mojang.com/mc/game/version_manifest.json";
+  String vanilla = "https://launchermeta.mojang.com/mc/game/version_manifest.json";
   String curseMaven = "https://www.cursemaven.com/test/";
   String fabric = "https://meta.fabricmc.net";
+  String quilt = "https://meta.quiltmc.org";
 
-  MetaSources(this.vanillaVersions);
+  MetaSources(this.vanilla);
 
   MetaSources.initial();
 }

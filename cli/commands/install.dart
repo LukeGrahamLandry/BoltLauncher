@@ -1,4 +1,5 @@
 import 'package:bolt_launcher/src/install/fabric.dart';
+import 'package:bolt_launcher/src/install/quilt.dart';
 
 import 'help.dart';
 import 'package:bolt_launcher/bolt_launcher.dart';
@@ -57,6 +58,10 @@ Future<void> installMinecraft(String loader, String version, bool hashChecking) 
   }
   else if (loader == "fabric"){
     var installer = FabricInstaller(version, "0.14.12");
+    await installer.install();
+  }
+  else if (loader == "quilt"){
+    var installer = QuiltInstaller(version, "0.18.1-beta.26");
     await installer.install();
   } else {
     print("Sorry, $loader is not a recognized mod loader. Try 'vanilla'");

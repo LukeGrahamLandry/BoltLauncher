@@ -48,15 +48,34 @@ class PastDownloadManifest {
 
 class MetadataCache {
   static Future<vanilla.VersionList> get vanillaVersions async {
-     return vanilla.VersionList.fromJson(await cachedFetch(GlobalOptions.metadataUrls.vanillaVersions, "vanilla-versions.json"));
+     return vanilla.VersionList.fromJson(await cachedFetchJson(GlobalOptions.metadataUrls.vanilla, "vanilla-versions.json"));
   }
 
   static Future<fabric.VersionList> get fabricVersions async {
-     return fabric.VersionList.fromJson(await cachedFetch("${GlobalOptions.metadataUrls.fabric}/v1/versions", "fabric-versions.json"));
+     return fabric.VersionList.fromJson(await cachedFetchJson("${GlobalOptions.metadataUrls.fabric}/v1/versions", "fabric-versions.json"));
+  }
+
+  static Future<fabric.VersionList> get quiltVersions async {
+    // 2023-01-04 https://meta.quiltmc.org/v3/versions does not return valid json.
+
+    String loaderData = await cachedFetchText("${GlobalOptions.metadataUrls.quilt}/v3/versions/loader", "quilt-loader-versions.json");
+    List<fabric.LoaderVerson> loaderVersions = [];
+    json.decode(loaderData).forEach((v) => loaderVersions.add(fabric.LoaderVerson.fromJson(v)));
+
+    String gameData = await cachedFetchText("${GlobalOptions.metadataUrls.quilt}/v3/versions/game", "quilt-game-versions.json");
+    gameData = gameData.replaceFirst("][", ",");
+    List<fabric.VanillaVersion> gameVersions = [];
+    json.decode(gameData).forEach((v) => gameVersions.add(fabric.VanillaVersion.fromJson(v)));
+
+    return fabric.VersionList(gameVersions, loaderVersions);
   }
 }
 
-Future<Map<String, dynamic>> cachedFetch(String url, String filename) async {
+Future<Map<String, dynamic>> cachedFetchJson(String url, String filename) async {
+    return jsonDecode(await cachedFetchText(url, filename));
+}
+
+Future<String> cachedFetchText(String url, String filename) async {
     var sourcesPath = p.join(Locations.metadataCacheDirectory, "sources.json");
     var sources = await jsonObjectFile(sourcesPath, {});
     var file = File(p.join(Locations.metadataCacheDirectory, filename));
@@ -71,14 +90,13 @@ Future<Map<String, dynamic>> cachedFetch(String url, String filename) async {
         } 
         await file.writeAsString(response.body);
 
-        
         sources[filename] = url;
-        await writeJsonObjectFile(sourcesPath, sources);   
+        writeJsonObjectFile(sourcesPath, sources);
     } else {
       print("Using cached $filename");
     }
 
-    return jsonDecode(await file.readAsString());
+    return await file.readAsString();
 }
 
 Future<Map<String, dynamic>> jsonObjectFile(String path, Map<String, dynamic> defaultData) async {

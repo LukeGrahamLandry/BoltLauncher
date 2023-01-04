@@ -143,11 +143,16 @@ class MavenLibFile implements LibFile {
 }
 
 mixin MavenArtifact {
-  late String identifier;
-  late String repo;
+  late String _identifier;
+  late String _repo;
+
+  void init(String identifier, String repo){
+    _identifier = identifier;
+    _repo = repo;
+  }
 
   String get path {
-    List<String> parts = identifier.split(":");
+    List<String> parts = _identifier.split(":");
     String group = parts[0];
     String path = group.split(".").join("/");
     String id = parts[1];
@@ -157,7 +162,7 @@ mixin MavenArtifact {
   }
 
   String get jarUrl {
-    return "$repo$path";
+    return "$_repo$path";
   }
 
   String get sha1Url {

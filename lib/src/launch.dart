@@ -1,6 +1,7 @@
 
 import 'dart:io';
 import 'package:bolt_launcher/src/install/fabric.dart';
+import 'package:bolt_launcher/src/install/quilt.dart';
 import 'package:path/path.dart' as p;
 import 'data/locations.dart';
 import 'install/vanilla.dart';
@@ -10,7 +11,7 @@ void launchMinecraft() async {
   Directory(gameDir).createSync(recursive: true);
 
   String versionId = "1.19.3";
-  var installer = FabricInstaller(versionId, "0.14.12");
+  var installer = QuiltInstaller(versionId, "0.18.1-beta.26");
   await installer.install();
 
   String classpath = installer.downloadHelper.classpath + ":" + installer.vanilla.downloadHelper.classpath;

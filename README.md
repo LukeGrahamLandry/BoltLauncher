@@ -3,7 +3,7 @@
 BoltLauncher is split into three components. 
 
 - lib: a Dart library that handles installing and launching modded Minecraft instances. 
-- cli: a command line program, used for testing during development
+- cli: a command line program, used for testing during development.
     - See [cli/README](cli/README.md) for details.
     - See [help.dart](cli/commands/help.dart) for usage docs.
 - gui: a flutter app for launching minecraft
@@ -14,11 +14,11 @@ can handle everything behind the scenes and you can focus on providing a great i
 
 ## Features
 
-- Install Minecraft
-    - vanilla
+- Install & Launch Minecraft
+    - vanilla, fabric, quilt
     - 1.19.x
-- Install Java
-- Manage game profiles with different mods
+- (WIP) Install Java 
+- (WIP) Manage game profiles with different mods
 
 ## Developing 
 
