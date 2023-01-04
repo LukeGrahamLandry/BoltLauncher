@@ -14,7 +14,7 @@ import '../api_models/fabric_metadata.dart' as fabric;
 import 'package:crypto/crypto.dart';
 
 mixin FabricInstallerSettings {
-  String get defaultMavenUrl => "https://maven.fabricmc.net/";
+  String get defaultMavenUrl => "https://maven.fabricmc.net/";  // TODO: dont hardcode
 
   Future<fabric.VersionList> get versionListMetadata => MetadataCache.fabricVersions;
 
@@ -25,7 +25,7 @@ mixin FabricInstallerSettings {
   String loaderName = "Fabric";
 }
 
-class FabricInstaller with FabricInstallerSettings {
+class FabricInstaller with FabricInstallerSettings implements MinecraftInstaller {
 	String minecraftVersion;
   String loaderVersion;
 	late PastDownloadManifest manifest;
@@ -37,6 +37,7 @@ class FabricInstaller with FabricInstallerSettings {
     vanilla = VanillaInstaller(minecraftVersion);
   }
 
+  @override
   Future<void> install() async {
     await vanilla.install();
 
@@ -57,7 +58,7 @@ class FabricInstaller with FabricInstallerSettings {
   Future<List<LibFile>> constructLibraries(fabric.VersionFiles data) async {
     List<fabric.LibraryLocation> allLibs = [...data.launcherMeta.libraries.common];
     allLibs.addAll(data.launcherMeta.libraries.client);
-    allLibs.add(fabric.LibraryLocation(data.loader.maven, defaultMavenUrl));  // TODO: dont hardcode url
+    allLibs.add(fabric.LibraryLocation(data.loader.maven, defaultMavenUrl));
 
     print("Loading maven hashes.");
     List<LibFile> toDownload = await Future.wait(allLibs.map((lib) => lib.lib));
@@ -88,4 +89,18 @@ class FabricInstaller with FabricInstallerSettings {
     }
     return null;
   }
+  
+  @override
+  String get launchClassPath => "${downloadHelper.classPath}:${vanilla.downloadHelper.classPath}";
+
+  @override
+  Future<String> get launchMainClass async {
+    return (await getMetadata())!.launcherMeta.mainClass.client;
+  }
+
+  @override
+  String get versionId => vanilla.versionId;
+
+  @override
+  List<HashError> get errors => downloadHelper.errors + vanilla.downloadHelper.errors;
 }

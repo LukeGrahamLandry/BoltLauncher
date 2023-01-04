@@ -6,19 +6,20 @@ import 'package:path/path.dart' as p;
 import 'data/locations.dart';
 import 'install/vanilla.dart';
 
-void launchMinecraft() async {
-  String gameDir = p.join(Locations.dataDirectory, "instances", "test");
-  Directory(gameDir).createSync(recursive: true);
-
+void testLaunchMinecraft(){
   String versionId = "1.19.3";
+  String gameDir = p.join(Locations.dataDirectory, "instances", "test");
   var installer = QuiltInstaller(versionId, "0.18.1-beta.26");
-  await installer.install();
+  launchMinecraft(installer, gameDir);
+}
 
-  String classpath = installer.downloadHelper.classpath + ":" + installer.vanilla.downloadHelper.classpath;
+void launchMinecraft(MinecraftInstaller installer, String gameDir) async {  
+  Directory(gameDir).createSync(recursive: true);
+  await installer.install();
 
   Map<String, String> argumentValues = {
     "\${auth_player_name}": "Dev",  // TODO
-    "\${version_name}": versionId,
+    "\${version_name}": installer.versionId,
     "\${game_directory}": gameDir,
     "\${assets_root}": "",  // TODO
     "\${assets_index_name}": "",  // TODO
@@ -31,16 +32,16 @@ void launchMinecraft() async {
     "\${natives_directory}": "",  // TODO
     "\${launcher_name}": "",  // TODO
     "\${launcher_version}": "",  // TODO
-    "\${classpath}": installer.downloadHelper.classpath,
+    "\${classpath}": installer.launchClassPath,
   };
 
   List<String> arguments = [
     "-XstartOnFirstThread",
     "-cp",
-    classpath,
-    (await installer.getMetadata())!.launcherMeta.mainClass.client,
+    installer.launchClassPath,
+    await installer.launchMainClass,
     "--version",
-    versionId, 
+    installer.versionId, 
     "--accessToken",
     "" // TODO
   ];

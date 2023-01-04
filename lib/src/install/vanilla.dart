@@ -16,14 +16,23 @@ void installVanilla(String versionId) async {
   await VanillaInstaller(versionId).install();
 }
 
-class VanillaInstaller {
+abstract class MinecraftInstaller {
+  String get versionId;
+  String get launchClassPath;
+  Future<String> get launchMainClass;
+  List<HashError> get errors;
+  Future<void> install();
+}
+
+class VanillaInstaller implements MinecraftInstaller {
+  @override
 	String versionId;
-  List<HashError> errors = [];
   bool hashChecking;
   late DownloadHelper downloadHelper;
 
 	VanillaInstaller(this.versionId, {this.hashChecking=true});
 
+  @override
 	Future<void> install() async {
 		var metadata = await getMetadata();
     if (metadata == null){
@@ -87,16 +96,27 @@ class VanillaInstaller {
   bool ruleMatches(List<vanilla.Rule>? rules){
     if (rules == null) return true;
 
-		for (var rule in rules){
-			if (rule.action == "allow"){
-				// TODO
+    for (var rule in rules){
+      if (rule.action == "allow"){
+        // TODO
         String? os = rule.os?.name;
-				if (os != null && !getOS().contains(os)) return false;
-			}
+        if (os != null && !getOS().contains(os)) return false;
+      }
 
-		}
-		return true;
-	}
+    }
+    return true;
+  }
+
+  @override
+  String get launchClassPath => downloadHelper.classPath;
+
+  @override
+  Future<String> get launchMainClass async {
+    return (await getMetadata())!.mainClass;
+  }
+  
+  @override
+  List<HashError> get errors => downloadHelper.errors;
 }
 
 List<String> getOS(){

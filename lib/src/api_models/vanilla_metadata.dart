@@ -144,8 +144,9 @@ class MainFiles {
 class VersionFiles {
     List<Library> libraries;
     MainFiles downloads;
+    String mainClass;
 
-    VersionFiles(this.libraries, this.downloads);
+    VersionFiles(this.libraries, this.downloads, this.mainClass);
 
     factory VersionFiles.fromJson(Map<String, dynamic> json) => _$VersionFilesFromJson(json);
     Map<String, dynamic> toJson() => _$VersionFilesToJson(this);

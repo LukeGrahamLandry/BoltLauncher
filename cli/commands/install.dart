@@ -42,10 +42,22 @@ void installCommand(List<String> arguments) async {
 }
 
 Future<void> installMinecraft(String loader, String version, bool hashChecking) async {
+  MinecraftInstaller installer;
   if (loader == "vanilla") {
-    var installer = VanillaInstaller(version, hashChecking: hashChecking);
-    await installer.install();
-    print("");
+    installer = VanillaInstaller(version, hashChecking: hashChecking);
+  }
+  else if (loader == "fabric"){
+    installer = FabricInstaller(version, "0.14.12");
+  }
+  else if (loader == "quilt"){
+    installer = QuiltInstaller(version, "0.18.1-beta.26");
+  } else {
+    print("Sorry, '$loader' is not a recognized mod loader. Try 'vanilla', 'fabric', or 'quilt'");
+    return;
+  }
+
+  await installer.install();
+  print("");
     if (installer.errors.isEmpty){
       print("Minecraft $loader $version has been installed.");
     } else {
@@ -55,17 +67,6 @@ Future<void> installMinecraft(String loader, String version, bool hashChecking) 
       print("Or, run again with (--no-hashChecking) to ignore these errors and force download. This is probably a very bad idea.");
       print("");
     }
-  }
-  else if (loader == "fabric"){
-    var installer = FabricInstaller(version, "0.14.12");
-    await installer.install();
-  }
-  else if (loader == "quilt"){
-    var installer = QuiltInstaller(version, "0.18.1-beta.26");
-    await installer.install();
-  } else {
-    print("Sorry, $loader is not a recognized mod loader. Try 'vanilla'");
-  }
 }
 
 Future<void> createEmptyProfile(String name, String loader, String version) async {

@@ -40,7 +40,7 @@ class DownloadHelper {
     manifest.close();
   }
 
-  String get classpath {
+  String get classPath {
     List<String> files = [];
     for (var lib in allLibs){
       files.add(lib.fullPath);
