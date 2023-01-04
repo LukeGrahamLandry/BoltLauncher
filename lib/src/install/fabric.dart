@@ -14,12 +14,12 @@ import '../api_models/fabric_metadata.dart' as fabric;
 import 'package:crypto/crypto.dart';
 
 mixin FabricInstallerSettings {
-  String get defaultMavenUrl => "https://maven.fabricmc.net/";  // TODO: dont hardcode
+  String get defaultMavenUrl => GlobalOptions.metadataUrls.fabricMaven;
 
   Future<fabric.VersionList> get versionListMetadata => MetadataCache.fabricVersions;
 
   Future<fabric.VersionFiles> versionFilesMetadata(String minecraftVersion, String loaderVersion) async {
-    return fabric.VersionFiles.fromJson(await cachedFetchJson("${GlobalOptions.metadataUrls.fabric}/v1/versions/loader/$minecraftVersion/$loaderVersion", "fabric-$minecraftVersion-$loaderVersion.json"));
+    return fabric.VersionFiles.fromJson(await cachedFetchJson("${GlobalOptions.metadataUrls.fabric}/versions/loader/$minecraftVersion/$loaderVersion", "fabric-$minecraftVersion-$loaderVersion.json"));
   } 
 
   String loaderName = "Fabric";
@@ -58,7 +58,7 @@ class FabricInstaller with FabricInstallerSettings implements MinecraftInstaller
   Future<List<LibFile>> constructLibraries(fabric.VersionFiles data) async {
     List<fabric.LibraryLocation> allLibs = [...data.launcherMeta.libraries.common];
     allLibs.addAll(data.launcherMeta.libraries.client);
-    allLibs.add(fabric.LibraryLocation(data.loader.maven, defaultMavenUrl));
+    allLibs.add(fabric.LibraryLocation(data.loader.maven, "$defaultMavenUrl/"));
 
     print("Loading maven hashes.");
     List<LibFile> toDownload = await Future.wait(allLibs.map((lib) => lib.lib));

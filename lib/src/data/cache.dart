@@ -57,17 +57,17 @@ class MetadataCache {
   }
 
   static Future<fabric.VersionList> get fabricVersions async {
-     return fabric.VersionList.fromJson(await cachedFetchJson("${GlobalOptions.metadataUrls.fabric}/v1/versions", "fabric-versions.json"));
+     return fabric.VersionList.fromJson(await cachedFetchJson("${GlobalOptions.metadataUrls.fabric}/versions", "fabric-versions.json"));
   }
 
   static Future<fabric.VersionList> get quiltVersions async {
     // 2023-01-04 https://meta.quiltmc.org/v3/versions does not return valid json.
 
-    String loaderData = await cachedFetchText("${GlobalOptions.metadataUrls.quilt}/v3/versions/loader", "quilt-loader-versions.json");
+    String loaderData = await cachedFetchText("${GlobalOptions.metadataUrls.quilt}/versions/loader", "quilt-loader-versions.json");
     List<fabric.LoaderVerson> loaderVersions = [];
     json.decode(loaderData).forEach((v) => loaderVersions.add(fabric.LoaderVerson.fromJson(v)));
 
-    String gameData = await cachedFetchText("${GlobalOptions.metadataUrls.quilt}/v3/versions/game", "quilt-game-versions.json");
+    String gameData = await cachedFetchText("${GlobalOptions.metadataUrls.quilt}/versions/game", "quilt-game-versions.json");
     gameData = gameData.replaceFirst("][", ",");
     List<fabric.VanillaVersion> gameVersions = [];
     json.decode(gameData).forEach((v) => gameVersions.add(fabric.VanillaVersion.fromJson(v)));

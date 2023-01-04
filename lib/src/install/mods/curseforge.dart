@@ -4,6 +4,7 @@ import 'package:bolt_launcher/bolt_launcher.dart';
 import 'package:bolt_launcher/src/data/cache.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
+import 'package:crypto/crypto.dart';
 
 
 // should probably use the actual maven thing instead of relying on the test page to have stable behaviour 
@@ -38,6 +39,11 @@ Future<void> downloadFromCurseMaven(String projectId, String fileId, String mods
 
     await file.create(recursive: true);
     await file.writeAsBytes(response.bodyBytes);
+
+    var digest = sha1.convert(response.bodyBytes);
+    // TODO: some sort of locking
+    await File(path.join(Locations.dataDirectory, "executables-download-history.txt")).writeAsString("${DateTime.now()} $downloadUrl $digest\n", mode: FileMode.append);
+    
 
     if (!inCache) {
       manifest.curseforge[fullId] = downloadUrl;

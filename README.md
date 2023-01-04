@@ -29,6 +29,7 @@ can handle everything behind the scenes and you can focus on providing a great i
     - continuous: `dart run build_runner watch --delete-conflicting-outputs`
 - Run command line app: `dart run cli/main.dart`
 - Build command line app: `dart compile exe cli/main.dart -o bolt`
+    - Use the `--define=AZURE_CLIENT_ID=` option to specify your Microsoft identity platform key. 
 
 ## Data Location
 

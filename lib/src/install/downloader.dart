@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:io' show File, Platform;
+import 'dart:io' show File, FileMode, Platform;
 import 'dart:typed_data';
 import 'package:bolt_launcher/bolt_launcher.dart';
 import 'package:http/http.dart';
@@ -25,7 +25,6 @@ class HashError {
 class DownloadHelper {
   late PastDownloadManifest manifest;
   List<HashError> errors = [];
-  bool hashChecking = true;
   List<LibFile> allLibs;
   int count = 0;
   int totalSize = 0;
@@ -79,13 +78,13 @@ class DownloadHelper {
     httpClient.close();
     
     int endTime = DateTime.now().millisecondsSinceEpoch;
-    print("Checked $count files in ${(endTime - startTime) / 1000} seconds.");
-
-
+    String msg = "Checked $count files in ${(endTime - startTime) / 1000} seconds. ";
     if (showSizeProgress) {
       var cachePercentage = ((1 - (totalDownloadSize / totalSize)) * 100).toStringAsFixed(1);
-      print("Of ${(totalSize/1000000).toStringAsFixed(0)} MB, $cachePercentage% found in cache, ${(totalDownloadSize/1000000).toStringAsFixed(0)} MB downloaded.");
+      msg += "Of ${(totalSize/1000000).toStringAsFixed(0)} MB, $cachePercentage% found in cache. ";
     }
+    msg +="${(totalDownloadSize/1000000).toStringAsFixed(0)} MB downloaded.";
+    print(msg);
 
     manifest.close();
   }
@@ -129,7 +128,7 @@ class DownloadHelper {
     Uint8List bodyBytes = await response.stream.toBytes();
     // var response = await http.get(Uri.parse(lib.url));
 
-    if (hashChecking){
+    if (GlobalOptions.checkHashesAfterDownload){
       var digest = sha1.convert(bodyBytes);
       if (digest.toString() != lib.sha1){
         errors.add(HashError(lib.sha1, digest.toString(), lib.url));
@@ -139,22 +138,24 @@ class DownloadHelper {
         print("($count/${allLibs.length}) failed ${lib.path}");
         return false;
       }
+    } else {
+      // TODO: stream directly to file instead of holding the whole thing in ram until the end 
     }
 
     await file.create(recursive: true);
     await file.writeAsBytes(bodyBytes);
     (lib.path.endsWith(".jar") ? manifest.jarLibs : manifest.other)[lib.path] = lib.sha1;
-
-
     count++;
-
+    
     String msg = "($count/${allLibs.length} files";
     if (showSizeProgress){
       totalDownloadSize += lib.size!;
       totalProgress += lib.size!;
-      msg += ", ${(totalProgress/1000000).toStringAsFixed(0)}/${(totalSize/1000000).toStringAsFixed(0)} MB, ${(totalProgress/totalSize*100).toStringAsFixed(1)}%";
+      msg += ", ${(totalProgress/GlobalOptions.bytesPerMB).toStringAsFixed(0)}/${(totalSize/1000000).toStringAsFixed(0)} MB, ${(totalProgress/totalSize*100).toStringAsFixed(1)}%";
+    } else {
+      totalDownloadSize += bodyBytes.length;
     }
-    msg += ") downloaded ${lib.path}";
+    msg += ") ${lib.url}";
     
     print(msg);
 
@@ -162,6 +163,11 @@ class DownloadHelper {
     if (incrementalManifestCounter > 5000000) {
       incrementalManifestCounter = 0;
       await manifest.quickSave();
+    }
+
+    if (lib.path.endsWith(".jar")){
+      // TODO: some sort of locking
+      await File(p.join(Locations.dataDirectory, "executables-download-history.txt")).writeAsString("${DateTime.now()} ${lib.url} ${lib.sha1}\n", mode: FileMode.append);
     }
 
 
@@ -174,27 +180,25 @@ class DownloadHelper {
 
     var file = File(lib.fullPath);
     bool filePresent = await file.exists();
-    if (filePresent){
-      bool matchesManifest = manifestHash == lib.sha1;
+    if (!filePresent) return false;
 
-      if (!matchesManifest){
-        print("WARNING");
-        print("Desired hash of ${lib.path} changed since last download.");
-        print("Was ${manifestHash}, now ${lib.sha1}");
-        print("File will be re-downloaded but this is very concerning.");
-        print("=======");
-      }
+    if (GlobalOptions.recomputeHashesBeforeLaunch){
+      var bytes = await file.readAsBytes();
+      var fileSystemHash = sha1.convert(await File(lib.fullPath).readAsBytes()).toString();
+      return fileSystemHash == lib.sha1;
+    } 
+    
+    bool matchesManifest = manifestHash == lib.sha1;
 
-      if (GlobalOptions.recomputeHashesOnStart){
-        var bytes = await file.readAsBytes();
-        var fileSystemHash = sha1.convert(await File(lib.fullPath).readAsBytes()).toString();
-        return fileSystemHash == lib.sha1;
-      }
-
-      return matchesManifest;
+    if (!matchesManifest){
+      print("WARNING");
+      print("Desired hash of ${lib.path} changed since last download.");
+      print("Was ${manifestHash}, now ${lib.sha1}");
+      print("File will be re-downloaded but this is very concerning.");
+      print("=======");
     }
 
-    return false;
+    return matchesManifest;
   }
 }
 

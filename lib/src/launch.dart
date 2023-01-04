@@ -9,7 +9,8 @@ import 'install/vanilla.dart';
 void testLaunchMinecraft(){
   String versionId = "1.19.3";
   String gameDir = p.join(Locations.dataDirectory, "instances", "test");
-  var installer = QuiltInstaller(versionId, "0.18.1-beta.26");
+  // var installer = QuiltInstaller(versionId, "0.18.1-beta.26");
+  var installer = FabricInstaller(versionId, "0.14.12");
   launchMinecraft(installer, gameDir);
 }
 
@@ -52,7 +53,7 @@ void launchMinecraft(MinecraftInstaller installer, String gameDir) async {
     "--assetsDir",
     p.join(Locations.installDirectory, "assets"),
     "--assetIndex",
-    installer.versionId,  // i think vanilla only calls it major.minor.json
+    installer.versionId,  //  TODO: i think vanilla only calls it major.minor.json
     "--accessToken",
     "", // TODO
   ];

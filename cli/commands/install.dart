@@ -13,11 +13,11 @@ void installCommand(List<String> arguments) async {
                     ..addOption("loader", abbr: 'l', defaultsTo: "vanilla")
                     ..addOption("url", abbr: 'u')
                     ..addOption("name", abbr: 'n')
-                    ..addOption("path", abbr: 'p', defaultsTo: "[BOLT_LAUNCHER_FOLDER]/instances/[NAME]")
+                    ..addOption("path", abbr: 'p', defaultsTo: "[${Branding.dataDirEnvVarName}]/instances/[NAME]")
                     ..addFlag("hashChecking", negatable: true, defaultsTo: true);
 
   ArgResults args = parser.parse(arguments);
-  String path = (args["path"] as String).replaceAll("[BOLT_LAUNCHER_FOLDER]", Locations.dataDirectory).replaceAll("[NAME]", args["name"] ?? "");
+  String path = (args["path"] as String).replaceAll("[${Branding.dataDirEnvVarName}]", Locations.dataDirectory).replaceAll("[NAME]", args["name"] ?? "");
   
   if (args.wasParsed("url")) {
     if (args.wasParsed("name")){

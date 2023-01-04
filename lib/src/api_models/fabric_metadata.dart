@@ -59,7 +59,7 @@ class VersionFiles {
 @JsonSerializable(explicitToJson: true)
 class LibraryLocation with MavenArtifact {
   String name;
-  String url;
+  String url;  // trailing slash
 
   LibraryLocation(this.name, this.url) {
     init(name, url);

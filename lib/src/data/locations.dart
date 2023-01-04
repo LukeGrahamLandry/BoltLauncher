@@ -1,6 +1,8 @@
 import 'dart:io' show File, FileMode, Platform;
 import 'package:path/path.dart' as path;
 
+import 'options.dart';
+
 class Locations {
   static String get homeDirectory {
     return Platform.isWindows ? Platform.environment['USERPROFILE']! : Platform.environment['HOME']!;
@@ -9,14 +11,14 @@ class Locations {
   static String get dataDirectory {
     String defaultLocation;
     if (Platform.isMacOS) {
-      defaultLocation = path.join(homeDirectory, "Library", "Application Support", "BoltLauncher");
+      defaultLocation = path.join(homeDirectory, "Library", "Application Support", Branding.dataDirectoryName);
     } else if (Platform.isWindows) {
-      defaultLocation = path.join(homeDirectory, "AppData", "BoltLauncher");
+      defaultLocation = path.join(homeDirectory, "AppData", Branding.dataDirectoryName);
     } else {
-      defaultLocation = path.join(homeDirectory, ".BoltLauncher");
+      defaultLocation = path.join(homeDirectory, ".${Branding.dataDirectoryName}");
     }
 
-    return Platform.environment["BOLT_LAUNCHER_FOLDER"] ?? defaultLocation;
+    return Platform.environment[Branding.dataDirEnvVarName] ?? defaultLocation;
   }
 
   static String get profilesFile {
