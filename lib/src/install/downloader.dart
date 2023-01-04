@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io' show File, Platform;
+import 'dart:typed_data';
 import 'package:bolt_launcher/bolt_launcher.dart';
+import 'package:http/http.dart';
 
 import '../data/cache.dart';
 import '../data/locations.dart';
@@ -25,17 +27,31 @@ class DownloadHelper {
   List<HashError> errors = [];
   bool hashChecking = true;
   List<LibFile> allLibs;
+  int count = 0;
+  int totalSize = 0;
+  int totalProgress = 0;
+  bool verbose;
+  late Client httpClient;
+  bool knownSize;
 
-  DownloadHelper(this.allLibs);
+  DownloadHelper(this.allLibs, {this.verbose = false, this.knownSize = false}) {
+    httpClient = Client();
+  }
 
   Future<void> downloadAll() async {
     manifest = await PastDownloadManifest.open();
 
-    print("Checking ${allLibs.length} libraries.");
     int startTime = DateTime.now().millisecondsSinceEpoch;
-    await Future.wait(allLibs.map((lib) => downloadLibrary(lib)));
+
+    try {
+      await Future.wait(allLibs.map((lib) => downloadLibrary(lib)));
+    } catch(e) {
+      print("Download process failed with error: ");
+      print(e.toString());
+    }
+    
     int endTime = DateTime.now().millisecondsSinceEpoch;
-    print("Checked ${allLibs.length} libraries in ${(endTime - startTime) / 1000} seconds.");
+    print("Checked ${count} files in ${(endTime - startTime) / 1000} seconds.");
 
     manifest.close();
   }
@@ -43,35 +59,51 @@ class DownloadHelper {
   String get classPath {
     List<String> files = [];
     for (var lib in allLibs){
-      files.add(lib.fullPath);
+      if (lib.fullPath.endsWith(".jar")){
+        files.add(lib.fullPath);
+      }
     }
     return files.join(":"); // other os separator? 
   }
   
   Future<bool> downloadLibrary(LibFile lib) async {
     if (await isCached(lib)){
-      print("cached ${lib.path}");
+      count++;
+      if (verbose) print("($count/${allLibs.length}) cached ${lib.path}");
       return true;
     }
 
     var file = File(lib.fullPath);
-    var response = await http.get(Uri.parse(lib.url));
+
+    Request request = Request("get", Uri.parse(lib.url));
+    StreamedResponse response = await httpClient.send(request);
+
+    if (response.contentLength != null) totalSize += response.contentLength!;
+
+    Uint8List bodyBytes = await response.stream.toBytes();
+    // var response = await http.get(Uri.parse(lib.url));
 
     if (hashChecking){
-      var digest = sha1.convert(response.bodyBytes);
+      var digest = sha1.convert(bodyBytes);
       if (digest.toString() != lib.sha1){
         errors.add(HashError(lib.sha1, digest.toString(), lib.url));
         print("Error downloading from ${lib.url}");
         print("- Expected sha1=${lib.sha1} but got $digest");
+        count++;
+        print("($count/${allLibs.length}) failed ${lib.path}");
         return false;
       }
     }
 
     await file.create(recursive: true);
-    await file.writeAsBytes(response.bodyBytes);
+    await file.writeAsBytes(bodyBytes);
     manifest.jarLibs[lib.path] = lib.sha1;
 
-    print("downloaded ${lib.path}");
+    totalProgress += bodyBytes.length;
+
+    count++;
+    
+    print("($count/${allLibs.length} files, ${(totalProgress/1000000).toStringAsFixed(0)}/${(totalSize/1000000).toStringAsFixed(0)} MB, ${(totalProgress/totalSize*100).toStringAsFixed(1)}%) downloaded ${lib.path}");
 
     return true;
   }
@@ -110,13 +142,23 @@ class LibFile {
   final String url;
   final String path;
   final String sha1;
-  
+
   LibFile(this.url, this.path, this.sha1);
 
   String get fullPath {
-    return p.join(Locations.dataDirectory, path);
+    return p.join(Locations.installDirectory, path);
   }
 }
+
+// class LibFileAt extends LibFile {
+//   String? fullDirectory;
+
+//   LibFileAt(String url, String path, String sha1, {this.fullDirectory}) : super(url, path, sha1);
+
+//   String get fullPath {
+//     return p.join(fullDirectory ?? Locations.dataDirectory, path);
+//   }
+// }
 
 class MavenLibFile implements LibFile {
   MavenArtifact artifact;

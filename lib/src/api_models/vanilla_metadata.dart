@@ -145,9 +145,57 @@ class VersionFiles {
     List<Library> libraries;
     MainFiles downloads;
     String mainClass;
+    RemoteAssetIndex assetIndex;
 
-    VersionFiles(this.libraries, this.downloads, this.mainClass);
+    VersionFiles(this.libraries, this.downloads, this.mainClass, this.assetIndex);
 
     factory VersionFiles.fromJson(Map<String, dynamic> json) => _$VersionFilesFromJson(json);
     Map<String, dynamic> toJson() => _$VersionFilesToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class RemoteAssetIndex {
+    String id;
+    String sha1;
+    int size;
+    int totalSize;
+    String url;
+
+    RemoteAssetIndex(this.id, this.sha1, this.size, this.totalSize, this.url);
+
+    factory RemoteAssetIndex.fromJson(Map<String, dynamic> json) => _$RemoteAssetIndexFromJson(json);
+    Map<String, dynamic> toJson() => _$RemoteAssetIndexToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class AssetIndexHolder {
+  Map<String, AssetIndexEntry> objects;
+
+  AssetIndexHolder(this.objects);
+
+  factory AssetIndexHolder.fromJson(Map<String, dynamic> json) => _$AssetIndexHolderFromJson(json);
+  Map<String, dynamic> toJson() => _$AssetIndexHolderToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class AssetIndexEntry implements LibFile {
+  String hash;
+  int size;
+  
+  AssetIndexEntry(this.hash, this.size);
+
+  factory AssetIndexEntry.fromJson(Map<String, dynamic> json) => _$AssetIndexEntryFromJson(json);
+  Map<String, dynamic> toJson() => _$AssetIndexEntryToJson(this);
+  
+  @override
+  String get fullPath => p.join(Locations.installDirectory, "assets", "objects", path);
+  
+  @override
+  String get path => "${sha1[0]}${sha1[1]}/$sha1";
+
+  @override
+  String get url => "${GlobalOptions.metadataUrls.assets}/$path";
+  
+  @override
+  String get sha1 => hash;
 }

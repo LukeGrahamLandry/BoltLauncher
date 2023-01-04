@@ -91,7 +91,7 @@ class FabricInstaller with FabricInstallerSettings implements MinecraftInstaller
   }
   
   @override
-  String get launchClassPath => "${downloadHelper.classPath}:${vanilla.downloadHelper.classPath}";
+  String get launchClassPath => "${downloadHelper.classPath}:${vanilla.jarDownloadHelper.classPath}";
 
   @override
   Future<String> get launchMainClass async {
@@ -102,5 +102,5 @@ class FabricInstaller with FabricInstallerSettings implements MinecraftInstaller
   String get versionId => vanilla.versionId;
 
   @override
-  List<HashError> get errors => downloadHelper.errors + vanilla.downloadHelper.errors;
+  List<HashError> get errors => downloadHelper.errors + vanilla.jarDownloadHelper.errors;
 }

@@ -14,9 +14,10 @@ class GlobalOptions {
 
 class MetaSources {
   String vanilla = "https://launchermeta.mojang.com/mc/game/version_manifest.json";
-  String curseMaven = "https://www.cursemaven.com/test/";
+  String curseMaven = "https://www.cursemaven.com/test";
   String fabric = "https://meta.fabricmc.net";
   String quilt = "https://meta.quiltmc.org";
+  String assets = "http://resources.download.minecraft.net";
 
   MetaSources(this.vanilla);
 

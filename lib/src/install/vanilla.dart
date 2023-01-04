@@ -3,6 +3,7 @@ import 'dart:io' show File, Platform;
 import 'package:bolt_launcher/bolt_launcher.dart';
 import 'package:bolt_launcher/src/install/downloader.dart';
 
+import '../api_models/vanilla_metadata.dart';
 import '../data/cache.dart';
 import '../data/locations.dart';
 import '../data/options.dart';
@@ -28,7 +29,8 @@ class VanillaInstaller implements MinecraftInstaller {
   @override
 	String versionId;
   bool hashChecking;
-  late DownloadHelper downloadHelper;
+  late DownloadHelper jarDownloadHelper;
+  late DownloadHelper assetDownloadHelper;
 
 	VanillaInstaller(this.versionId, {this.hashChecking=true});
 
@@ -57,12 +59,16 @@ class VanillaInstaller implements MinecraftInstaller {
   }
 
 	Future<void> download(vanilla.VersionFiles data) async {
-    downloadHelper = DownloadHelper(constructLibraries(data));
-    await downloadHelper.downloadAll();
+    jarDownloadHelper = DownloadHelper(constructLibraries(data));
+    await jarDownloadHelper.downloadAll();
+
+    assetDownloadHelper = DownloadHelper(await constructAssets(data));
+    await assetDownloadHelper.downloadAll();
 	}
 
   List<LibFile> constructLibraries(vanilla.VersionFiles data) {
     List<LibFile> libraries = [data.downloads.client];
+    libraries.add(LibFile(data.assetIndex.url, p.join("assets", "indexes", "$versionId.json"), data.assetIndex.sha1));
 
     for (var lib in data.libraries){
       libraries.addAll(determineDownloadable(lib));
@@ -93,6 +99,12 @@ class VanillaInstaller implements MinecraftInstaller {
     return toDownload;
   }
 
+  Future<List<LibFile>> constructAssets(vanilla.VersionFiles data) async {
+    File indexFile = File(p.join(Locations.installDirectory, "assets", "indexes", "$versionId.json"));
+    AssetIndexHolder indexData = AssetIndexHolder.fromJson(json.decode(await indexFile.readAsString()));
+    return List.of(indexData.objects.values);
+  }
+
   bool ruleMatches(List<vanilla.Rule>? rules){
     if (rules == null) return true;
 
@@ -108,7 +120,7 @@ class VanillaInstaller implements MinecraftInstaller {
   }
 
   @override
-  String get launchClassPath => downloadHelper.classPath;
+  String get launchClassPath => jarDownloadHelper.classPath;
 
   @override
   Future<String> get launchMainClass async {
@@ -116,7 +128,7 @@ class VanillaInstaller implements MinecraftInstaller {
   }
   
   @override
-  List<HashError> get errors => downloadHelper.errors;
+  List<HashError> get errors => jarDownloadHelper.errors;
 }
 
 List<String> getOS(){

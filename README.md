@@ -18,6 +18,7 @@ can handle everything behind the scenes and you can focus on providing a great i
     - vanilla, fabric, quilt
     - 1.19.x
 - (WIP) Install Java 
+- (WIP) Microsoft Auth
 - (WIP) Manage game profiles with different mods
 
 ## Developing 
