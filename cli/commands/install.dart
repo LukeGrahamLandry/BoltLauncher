@@ -1,3 +1,5 @@
+import 'package:bolt_launcher/src/install/fabric.dart';
+
 import 'help.dart';
 import 'package:bolt_launcher/bolt_launcher.dart';
 import 'dart:io';
@@ -52,6 +54,10 @@ Future<void> installMinecraft(String loader, String version, bool hashChecking) 
       print("Or, run again with (--no-hashChecking) to ignore these errors and force download. This is probably a very bad idea.");
       print("");
     }
+  }
+  else if (loader == "fabric"){
+    var installer = FabricInstaller(version, "0.14.12");
+    await installer.install();
   } else {
     print("Sorry, $loader is not a recognized mod loader. Try 'vanilla'");
   }

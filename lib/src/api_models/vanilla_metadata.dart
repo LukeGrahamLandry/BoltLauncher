@@ -1,4 +1,7 @@
+import 'package:bolt_launcher/bolt_launcher.dart';
+import 'package:bolt_launcher/src/install/util.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:path/path.dart' as p;
 part 'vanilla_metadata.g.dart';
 
 @JsonSerializable(explicitToJson: true)
@@ -26,16 +29,52 @@ class VersionList {
 }
 
 @JsonSerializable(explicitToJson: true)
-class Artifact {
-    String? path;
-    String sha1;
-    String url;
-    int size;
+class Artifact implements LibFile {
+  String path;
+  String sha1;
+  String url;
+  int size;
 
-    Artifact(this.path, this.sha1, this.url, this.size);
+  Artifact(this.path, this.sha1, this.url, this.size);
 
-    factory Artifact.fromJson(Map<String, dynamic> json) => _$ArtifactFromJson(json);
-    Map<String, dynamic> toJson() => _$ArtifactToJson(this);
+  factory Artifact.fromJson(Map<String, dynamic> json) => _$ArtifactFromJson(json);
+  Map<String, dynamic> toJson() => _$ArtifactToJson(this);
+  
+  @override
+  String get fullPath => p.join(Locations.dataDirectory, "libraries", path);
+
+  String get jarUrl {
+    return url;
+  }
+}
+
+@JsonSerializable(explicitToJson: true)
+class MainArtifact implements LibFile {
+  String sha1;
+  String url;
+  int size;
+
+  String? version;
+  String? name;
+
+  MainArtifact(this.sha1, this.url, this.size);
+
+  factory MainArtifact.fromJson(Map<String, dynamic> json) => _$MainArtifactFromJson(json);
+  Map<String, dynamic> toJson() => _$MainArtifactToJson(this);
+    
+  @override
+  String get fullPath {
+    return p.join(Locations.installDirectory, "versions", path);
+  }
+
+  @override
+  String get path {
+    return p.join(version!, "$version.jar");
+  }
+
+  String get jarUrl {
+    return url;
+  }
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -90,10 +129,10 @@ class Rule {
 
 @JsonSerializable(explicitToJson: true)
 class MainFiles {
-    Artifact client;
-    Artifact client_mappings;
-    Artifact server;
-    Artifact server_mappings;
+    MainArtifact client;
+    MainArtifact client_mappings;
+    MainArtifact server;
+    MainArtifact server_mappings;
 
     MainFiles(this.client_mappings, this.client, this.server, this.server_mappings);
 

@@ -22,6 +22,8 @@ Arguments:
 		a modpack from modrinth or curseforge or nebula
 	--path "[BOLT_LAUNCHER_FOLDER]/instances/[NAME]"
 		location for the minecraft folder 
+  --refresh
+    flag to ignore the metadata cache. useful if you know a new version was just released. 
 
 Specify (--url and --name) to install a mod pack to a new profile. 
 Specify (--loader, --version, and --name) to create an empty profile. 

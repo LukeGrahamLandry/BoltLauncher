@@ -9,6 +9,7 @@ import 'package:path/path.dart' as p;
 import '../data/options.dart';
 import 'package:http/http.dart' as http;
 import '../api_models/vanilla_metadata.dart' as vanilla;
+import '../api_models/fabric_metadata.dart' as fabric;
 
 import 'locations.dart';
 
@@ -17,11 +18,11 @@ part 'cache.g.dart';
 
 @JsonSerializable(explicitToJson: true, includeIfNull: true)
 class PastDownloadManifest {
-    Map<String, String> vanillaLibs;  // name -> sha1
+    Map<String, String> jarLibs;  // name -> sha1
     Map<String, String> curseforge;  // project-file -> download url
     Map<String, String> modrinth;  // project id -> file id
 
-    PastDownloadManifest(this.vanillaLibs, this.curseforge, this.modrinth);
+    PastDownloadManifest(this.jarLibs, this.curseforge, this.modrinth);
 
     factory PastDownloadManifest.fromJson(Map<String, dynamic> json) => _$PastDownloadManifestFromJson(json);
     Map<String, dynamic> toJson() => _$PastDownloadManifestToJson(this);
@@ -42,6 +43,10 @@ class PastDownloadManifest {
 class MetadataCache {
   static Future<vanilla.VersionList> get vanillaVersions async {
      return vanilla.VersionList.fromJson(await cachedFetch(GlobalOptions.metadataUrls.vanillaVersions, "vanilla-versions.json"));
+  }
+
+  static Future<fabric.VersionList> get fabricVersions async {
+     return fabric.VersionList.fromJson(await cachedFetch("${GlobalOptions.metadataUrls.fabric}/v1/versions", "fabric-versions.json"));
   }
 }
 

@@ -13,6 +13,8 @@ class MetaSources {
   String vanillaVersions = "https://launchermeta.mojang.com/mc/game/version_manifest.json";
   String curseMaven = "https://www.cursemaven.com/test/";
 
+  String fabric = "https://meta.fabricmc.net";
+
   MetaSources(this.vanillaVersions);
 
   MetaSources.initial();
