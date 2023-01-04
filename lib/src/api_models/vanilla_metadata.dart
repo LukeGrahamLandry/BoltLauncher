@@ -33,7 +33,7 @@ class Artifact implements LibFile {
   String path;
   String sha1;
   String url;
-  int size;
+  int? size;
 
   Artifact(this.path, this.sha1, this.url, this.size);
 
@@ -52,7 +52,7 @@ class Artifact implements LibFile {
 class MainArtifact implements LibFile {
   String sha1;
   String url;
-  int size;
+  int? size;
 
   String? version;
   String? name;
@@ -180,7 +180,7 @@ class AssetIndexHolder {
 @JsonSerializable(explicitToJson: true)
 class AssetIndexEntry implements LibFile {
   String hash;
-  int size;
+  int? size;
   
   AssetIndexEntry(this.hash, this.size);
 

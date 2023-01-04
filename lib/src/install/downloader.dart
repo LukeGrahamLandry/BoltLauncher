@@ -32,11 +32,11 @@ class DownloadHelper {
   int totalProgress = 0;
   bool verbose;
   late Client httpClient;
-  bool knownSize;
+  int incrementalManifestCounter = 0;
+  bool showSizeProgress = true;
+  int totalDownloadSize = 0;
 
-  DownloadHelper(this.allLibs, {this.verbose = false, this.knownSize = false}) {
-    httpClient = Client();
-  }
+  DownloadHelper(this.allLibs, {this.verbose = false});
 
   Future<void> downloadAll() async {
     manifest = await PastDownloadManifest.open();
@@ -44,14 +44,48 @@ class DownloadHelper {
     int startTime = DateTime.now().millisecondsSinceEpoch;
 
     try {
-      await Future.wait(allLibs.map((lib) => downloadLibrary(lib)));
-    } catch(e) {
+      httpClient = Client();
+
+      for (LibFile lib in allLibs){
+        if (lib.size != null){
+          totalSize += lib.size!;
+        } else {
+          showSizeProgress = false;
+          break;
+        }
+      }
+
+      print("Checking ${allLibs.length} files${showSizeProgress ? " (${(totalSize/1000000).toStringAsFixed(0)} MB)" : ""}");
+      
+      // if i dont split it into chunks, it freezes on the Future.wait for a really long time before downloading anything
+      // i guess its starting all the connections before it gives any time to actually downloading so theres no sense of progress 
+      // but dowing it syncronously in a for loop awaiting each individually was a lot slower 
+      var len = allLibs.length;
+      var size = 50;
+      List<List<LibFile>> chunks = [];
+      for(var i = 0; i< len; i+= size){    
+          var end = (i+size<len)?i+size:len;
+          chunks.add(allLibs.sublist(i,end));
+      }
+
+      for (List<LibFile> libs in chunks){
+        await Future.wait(libs.map((lib) => downloadLibrary(lib)));
+      }
+    } catch(e, stacktrace) {
       print("Download process failed with error: ");
       print(e.toString());
+      print(stacktrace);
     }
+    httpClient.close();
     
     int endTime = DateTime.now().millisecondsSinceEpoch;
-    print("Checked ${count} files in ${(endTime - startTime) / 1000} seconds.");
+    print("Checked $count files in ${(endTime - startTime) / 1000} seconds.");
+
+
+    if (showSizeProgress) {
+      var cachePercentage = ((1 - (totalDownloadSize / totalSize)) * 100).toStringAsFixed(1);
+      print("Of ${(totalSize/1000000).toStringAsFixed(0)} MB, $cachePercentage% found in cache, ${(totalDownloadSize/1000000).toStringAsFixed(0)} MB downloaded.");
+    }
 
     manifest.close();
   }
@@ -69,6 +103,7 @@ class DownloadHelper {
   Future<bool> downloadLibrary(LibFile lib) async {
     if (await isCached(lib)){
       count++;
+      if (showSizeProgress) totalProgress += lib.size!;
       if (verbose) print("($count/${allLibs.length}) cached ${lib.path}");
       return true;
     }
@@ -76,9 +111,20 @@ class DownloadHelper {
     var file = File(lib.fullPath);
 
     Request request = Request("get", Uri.parse(lib.url));
-    StreamedResponse response = await httpClient.send(request);
 
-    if (response.contentLength != null) totalSize += response.contentLength!;
+    StreamedResponse response;
+    try {
+      response = await httpClient.send(request);
+    } catch (e) {
+      print("${e.toString()} ${lib.url}");
+      return false;
+    }
+    
+
+    if (response.statusCode != 200){
+      print("${lib.url} ${response.statusCode}");
+      return false;
+    }
 
     Uint8List bodyBytes = await response.stream.toBytes();
     // var response = await http.get(Uri.parse(lib.url));
@@ -97,19 +143,33 @@ class DownloadHelper {
 
     await file.create(recursive: true);
     await file.writeAsBytes(bodyBytes);
-    manifest.jarLibs[lib.path] = lib.sha1;
+    (lib.path.endsWith(".jar") ? manifest.jarLibs : manifest.other)[lib.path] = lib.sha1;
 
-    totalProgress += bodyBytes.length;
 
     count++;
+
+    String msg = "($count/${allLibs.length} files";
+    if (showSizeProgress){
+      totalDownloadSize += lib.size!;
+      totalProgress += lib.size!;
+      msg += ", ${(totalProgress/1000000).toStringAsFixed(0)}/${(totalSize/1000000).toStringAsFixed(0)} MB, ${(totalProgress/totalSize*100).toStringAsFixed(1)}%";
+    }
+    msg += ") downloaded ${lib.path}";
     
-    print("($count/${allLibs.length} files, ${(totalProgress/1000000).toStringAsFixed(0)}/${(totalSize/1000000).toStringAsFixed(0)} MB, ${(totalProgress/totalSize*100).toStringAsFixed(1)}%) downloaded ${lib.path}");
+    print(msg);
+
+    incrementalManifestCounter += bodyBytes.length;
+    if (incrementalManifestCounter > 5000000) {
+      incrementalManifestCounter = 0;
+      await manifest.quickSave();
+    }
+
 
     return true;
   }
 
   Future<bool> isCached(LibFile lib) async {
-    String? manifestHash = manifest.jarLibs[lib.path];
+    String? manifestHash = (lib.path.endsWith(".jar") ? manifest.jarLibs : manifest.other)[lib.path];
     if (manifestHash == null) return false;
 
     var file = File(lib.fullPath);
@@ -142,8 +202,9 @@ class LibFile {
   final String url;
   final String path;
   final String sha1;
+  int? size;
 
-  LibFile(this.url, this.path, this.sha1);
+  LibFile(this.url, this.path, this.sha1, this.size);
 
   String get fullPath {
     return p.join(Locations.installDirectory, path);
@@ -181,7 +242,9 @@ class MavenLibFile implements LibFile {
 
   @override
   String get url => artifact.jarUrl;
-
+  
+  @override
+  int? size;
 }
 
 mixin MavenArtifact {

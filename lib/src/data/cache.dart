@@ -21,15 +21,16 @@ class PastDownloadManifest {
   static bool locked = false;
   Map<String, String> jarLibs;  // name -> sha1
   Map<String, String> curseforge;  // project-file -> download url
-  Map<String, String> modrinth;  // project id -> file id
+  Map<String, String> modrinth;
+  Map<String, String> other;  // assets
 
-  PastDownloadManifest(this.jarLibs, this.curseforge, this.modrinth);
+  PastDownloadManifest(this.jarLibs, this.curseforge, this.modrinth, this.other);
 
   factory PastDownloadManifest.fromJson(Map<String, dynamic> json) => _$PastDownloadManifestFromJson(json);
   Map<String, dynamic> toJson() => _$PastDownloadManifestToJson(this);
 
 	static Map<String, dynamic> empty() {
-		return PastDownloadManifest({}, {}, {}).toJson();
+		return PastDownloadManifest({}, {}, {}, {}).toJson();
 	}
 
 	static Future<PastDownloadManifest> open() async {
@@ -44,6 +45,10 @@ class PastDownloadManifest {
 		await writeJsonObjectFile(Locations.manifestFile, toJson());
     locked = false;
 	}
+
+  quickSave() async {
+    await writeJsonObjectFile(Locations.manifestFile, toJson());
+  }
 }
 
 class MetadataCache {
@@ -114,6 +119,6 @@ Future<void> writeJsonObjectFile(String path, Map<String, dynamic> data) async {
     if (!(await file.exists())){
         await file.create(recursive: true);
     }
-    file.writeAsString(json.encode(data));
+    file.writeAsString(JsonEncoder.withIndent('  ').convert(data));
 }
 

@@ -68,7 +68,7 @@ class VanillaInstaller implements MinecraftInstaller {
 
   List<LibFile> constructLibraries(vanilla.VersionFiles data) {
     List<LibFile> libraries = [data.downloads.client];
-    libraries.add(LibFile(data.assetIndex.url, p.join("assets", "indexes", "$versionId.json"), data.assetIndex.sha1));
+    libraries.add(LibFile(data.assetIndex.url, p.join("assets", "indexes", "$versionId.json"), data.assetIndex.sha1, data.assetIndex.size));
 
     for (var lib in data.libraries){
       libraries.addAll(determineDownloadable(lib));
@@ -102,7 +102,8 @@ class VanillaInstaller implements MinecraftInstaller {
   Future<List<LibFile>> constructAssets(vanilla.VersionFiles data) async {
     File indexFile = File(p.join(Locations.installDirectory, "assets", "indexes", "$versionId.json"));
     AssetIndexHolder indexData = AssetIndexHolder.fromJson(json.decode(await indexFile.readAsString()));
-    return List.of(indexData.objects.values);
+    List<LibFile> libs = List.of(indexData.objects.values);
+    return libs;
   }
 
   bool ruleMatches(List<vanilla.Rule>? rules){

@@ -17,7 +17,7 @@ class MetaSources {
   String curseMaven = "https://www.cursemaven.com/test";
   String fabric = "https://meta.fabricmc.net";
   String quilt = "https://meta.quiltmc.org";
-  String assets = "http://resources.download.minecraft.net";
+  String assets = "https://resources.download.minecraft.net";
 
   MetaSources(this.vanilla);
 

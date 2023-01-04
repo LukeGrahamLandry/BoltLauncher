@@ -1,3 +1,4 @@
+import 'package:bolt_launcher/src/data/cache.dart';
 import 'package:bolt_launcher/src/install/mods/curseforge.dart';
 import 'package:bolt_launcher/src/launch.dart';
 

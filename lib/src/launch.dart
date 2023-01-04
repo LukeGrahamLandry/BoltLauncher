@@ -15,7 +15,12 @@ void testLaunchMinecraft(){
 
 void launchMinecraft(MinecraftInstaller installer, String gameDir) async {  
   Directory(gameDir).createSync(recursive: true);
+
+  print("Checking installation...");
+  int startTime = DateTime.now().millisecondsSinceEpoch;
   await installer.install();
+  int endTime = DateTime.now().millisecondsSinceEpoch;
+  print("Full installation check finished in ${(endTime - startTime) / 1000} seconds.");
 
   Map<String, String> argumentValues = {
     "\${auth_player_name}": "Dev",  // TODO
@@ -42,8 +47,14 @@ void launchMinecraft(MinecraftInstaller installer, String gameDir) async {
     await installer.launchMainClass,
     "--version",
     installer.versionId, 
+    "--gameDir",
+    gameDir,
+    "--assetsDir",
+    p.join(Locations.installDirectory, "assets"),
+    "--assetIndex",
+    installer.versionId,  // i think vanilla only calls it major.minor.json
     "--accessToken",
-    "" // TODO
+    "", // TODO
   ];
 
   print("Starting Minecraft.");
