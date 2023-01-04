@@ -1,7 +1,7 @@
 
 
 import 'package:bolt_launcher/bolt_launcher.dart';
-import 'package:bolt_launcher/src/install/util.dart';
+import 'package:bolt_launcher/src/install/downloader.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import 'package:path/path.dart' as p;
@@ -57,53 +57,22 @@ class VersionFiles {
 }
 
 @JsonSerializable(explicitToJson: true)
-class LibraryLocation implements LibFile {
+class LibraryLocation with MavenArtifact {
   String name;
   String url;
   String? sha1Value;
 
-  LibraryLocation(this.name, this.url);
-
-  String get path {
-    List<String> parts = name.split(":");
-    String group = parts[0];
-    String path = group.split(".").join("/");
-    String id = parts[1];
-    String version = parts[2];
-
-    return "$path/$id/$version/$id-$version.jar";
+  LibraryLocation(this.name, this.url) {
+    identifier = name;
+    repo = url;
   }
 
-  String get jarUrl {
-    return "$url$path";
-  }
-
-  String get sha1Url {
-    return "$jarUrl.sha1";
-  }
-
-  @override
-  String get fullPath {
-    return p.join(Locations.installDirectory, "libraries", path);
-  }
-
-  @override
-  String get sha1 {
-    return sha1Value!;
-  }
-
-  Future<void> fetchHash() async {
-    var response = await http.get(Uri.parse(sha1Url));
-    if (response.statusCode != 200) {
-        throw Exception('Failed to load $url');  // TODO
-    } 
-    sha1Value = response.body;
+  Future<LibFile> get lib async {
+    return await MavenLibFile.of(this, p.join(Locations.installDirectory, "libraries"));
   }
 
   factory LibraryLocation.fromJson(Map<String, dynamic> json) => _$LibraryLocationFromJson(json);
   Map<String, dynamic> toJson() => _$LibraryLocationToJson(this);
-  
-  
 }
 
 @JsonSerializable(explicitToJson: true)

@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io' show File, Platform;
 import 'package:bolt_launcher/bolt_launcher.dart';
-import 'package:bolt_launcher/src/install/util.dart';
+import 'package:bolt_launcher/src/install/downloader.dart';
 
 import '../data/cache.dart';
 import '../data/locations.dart';
@@ -18,7 +18,6 @@ void installVanilla(String versionId) async {
 
 class VanillaInstaller {
 	String versionId;
-	late PastDownloadManifest manifest;
   List<HashError> errors = [];
   bool hashChecking;
   late DownloadHelper downloadHelper;
@@ -26,8 +25,6 @@ class VanillaInstaller {
 	VanillaInstaller(this.versionId, {this.hashChecking=true});
 
 	Future<void> install() async {
-		manifest = await PastDownloadManifest.load();
-    
 		var metadata = await getMetadata();
     if (metadata == null){
 			print("Minecraft version $versionId was not found. ");
@@ -35,8 +32,6 @@ class VanillaInstaller {
 		}
 
 		await download(metadata);
-
-    await manifest.save();
 	}
 
   Future<vanilla.VersionFiles?> getMetadata() async {

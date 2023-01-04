@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io' show File, Platform;
 import 'package:bolt_launcher/bolt_launcher.dart';
-import 'package:bolt_launcher/src/install/util.dart';
+import 'package:bolt_launcher/src/install/downloader.dart';
 
 import '../data/cache.dart';
 import '../data/locations.dart';
@@ -48,9 +48,9 @@ class FabricInstaller {
     allLibs.add(fabric.LibraryLocation(data.loader.maven, "https://maven.fabricmc.net/"));  // TODO: dont hardcode url
 
     print("Loading maven hashes.");
-    await Future.wait(allLibs.map((lib) => lib.fetchHash()));
+    List<LibFile> toDownload = await Future.wait(allLibs.map((lib) => lib.lib));
 
-    return allLibs;
+    return toDownload;
   }
 
   Future<fabric.VersionFiles?> getMetadata() async {

@@ -6,13 +6,15 @@ import 'dart:convert';
 
 class GlobalOptions {
   static bool recomputeHashesOnStart = false;
+  // static bool checkSignaturesOnDownload = true;  // TODO
+  // static String pgpCommand = "gpg"
+
   static MetaSources metadataUrls = MetaSources.initial();
 }
 
 class MetaSources {
   String vanillaVersions = "https://launchermeta.mojang.com/mc/game/version_manifest.json";
   String curseMaven = "https://www.cursemaven.com/test/";
-
   String fabric = "https://meta.fabricmc.net";
 
   MetaSources(this.vanillaVersions);

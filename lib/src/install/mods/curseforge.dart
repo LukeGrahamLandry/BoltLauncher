@@ -9,7 +9,7 @@ import 'package:path/path.dart' as path;
 // should probably use the actual maven thing instead of relying on the test page to have stable behaviour 
 Future<void> downloadFromCurseMaven(String projectId, String fileId, String modsFolder) async {
   String fullId = "$projectId-$fileId";
-  PastDownloadManifest manifest = await PastDownloadManifest.load();
+  PastDownloadManifest manifest = await PastDownloadManifest.open();
 
   String downloadUrl;
   bool inCache;
@@ -41,7 +41,7 @@ Future<void> downloadFromCurseMaven(String projectId, String fileId, String mods
 
     if (!inCache) {
       manifest.curseforge[fullId] = downloadUrl;
-      await manifest.save();
+      await manifest.close();
     }
   }
 }

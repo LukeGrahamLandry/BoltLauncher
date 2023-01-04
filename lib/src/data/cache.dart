@@ -18,25 +18,31 @@ part 'cache.g.dart';
 
 @JsonSerializable(explicitToJson: true, includeIfNull: true)
 class PastDownloadManifest {
-    Map<String, String> jarLibs;  // name -> sha1
-    Map<String, String> curseforge;  // project-file -> download url
-    Map<String, String> modrinth;  // project id -> file id
+  static bool locked = false;
+  Map<String, String> jarLibs;  // name -> sha1
+  Map<String, String> curseforge;  // project-file -> download url
+  Map<String, String> modrinth;  // project id -> file id
 
-    PastDownloadManifest(this.jarLibs, this.curseforge, this.modrinth);
+  PastDownloadManifest(this.jarLibs, this.curseforge, this.modrinth);
 
-    factory PastDownloadManifest.fromJson(Map<String, dynamic> json) => _$PastDownloadManifestFromJson(json);
-    Map<String, dynamic> toJson() => _$PastDownloadManifestToJson(this);
+  factory PastDownloadManifest.fromJson(Map<String, dynamic> json) => _$PastDownloadManifestFromJson(json);
+  Map<String, dynamic> toJson() => _$PastDownloadManifestToJson(this);
 
 	static Map<String, dynamic> empty() {
 		return PastDownloadManifest({}, {}, {}).toJson();
 	}
 
-	static Future<PastDownloadManifest> load() async {
+	static Future<PastDownloadManifest> open() async {
+    if (locked){
+      throw Exception("Manifest file is locked.");
+    }
+    locked = true;
 		return PastDownloadManifest.fromJson(await jsonObjectFile(Locations.manifestFile, PastDownloadManifest.empty()));
 	}
 
-	Future<void> save() async {
+	Future<void> close() async {
 		await writeJsonObjectFile(Locations.manifestFile, toJson());
+    locked = false;
 	}
 }
 

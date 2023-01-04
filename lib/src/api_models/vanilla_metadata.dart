@@ -1,5 +1,5 @@
 import 'package:bolt_launcher/bolt_launcher.dart';
-import 'package:bolt_launcher/src/install/util.dart';
+import 'package:bolt_launcher/src/install/downloader.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:path/path.dart' as p;
 part 'vanilla_metadata.g.dart';
