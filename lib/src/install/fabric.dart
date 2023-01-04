@@ -18,6 +18,8 @@ class FabricInstaller {
   String fabricLoaderVersion;
 	late PastDownloadManifest manifest;
   late VanillaInstaller vanilla;
+  
+  late DownloadHelper downloadHelper;
 
   FabricInstaller(this.minecraftVersion, this.fabricLoaderVersion) {
     vanilla = VanillaInstaller(minecraftVersion);
@@ -33,10 +35,14 @@ class FabricInstaller {
 		}
 
     await download(metadata);
-
   }
 
   Future<void> download(fabric.VersionFiles data) async {
+    downloadHelper = DownloadHelper(await constructLibraries(data));
+    await downloadHelper.downloadAll();
+  }
+
+  Future<List<LibFile>> constructLibraries(fabric.VersionFiles data) async {
     List<fabric.LibraryLocation> allLibs = [...data.launcherMeta.libraries.common];
     allLibs.addAll(data.launcherMeta.libraries.client);
     allLibs.add(fabric.LibraryLocation(data.loader.maven, "https://maven.fabricmc.net/"));  // TODO: dont hardcode url
@@ -44,7 +50,7 @@ class FabricInstaller {
     print("Loading maven hashes.");
     await Future.wait(allLibs.map((lib) => lib.fetchHash()));
 
-    DownloadHelper().downloadAll(allLibs);
+    return allLibs;
   }
 
   Future<fabric.VersionFiles?> getMetadata() async {

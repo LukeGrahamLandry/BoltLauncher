@@ -1,5 +1,6 @@
 
 import 'dart:io';
+import 'package:bolt_launcher/src/install/fabric.dart';
 import 'package:path/path.dart' as p;
 import 'data/locations.dart';
 import 'install/vanilla.dart';
@@ -9,8 +10,10 @@ void launchMinecraft() async {
   Directory(gameDir).createSync(recursive: true);
 
   String versionId = "1.19.3";
-  var installer = VanillaInstaller(versionId);
+  var installer = FabricInstaller(versionId, "0.14.12");
   await installer.install();
+
+  String classpath = installer.downloadHelper.classpath + ":" + installer.vanilla.downloadHelper.classpath;
 
   Map<String, String> argumentValues = {
     "\${auth_player_name}": "Dev",  // TODO
@@ -27,15 +30,14 @@ void launchMinecraft() async {
     "\${natives_directory}": "",  // TODO
     "\${launcher_name}": "",  // TODO
     "\${launcher_version}": "",  // TODO
-    "\${classpath}": installer.classpath.join(":"),  // TODO: do other operating systems use a diferent separator? 
+    "\${classpath}": installer.downloadHelper.classpath,
   };
-
 
   List<String> arguments = [
     "-XstartOnFirstThread",
     "-cp",
-    installer.classpath.join(":"),
-    "net.minecraft.client.main.Main",
+    classpath,
+    (await installer.getMetadata())!.launcherMeta.mainClass.client,
     "--version",
     versionId, 
     "--accessToken",

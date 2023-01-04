@@ -40,8 +40,11 @@ class DownloadHelper {
   late PastDownloadManifest manifest;
   List<HashError> errors = [];
   bool hashChecking = true;
+  List<LibFile> allLibs;
 
-  Future<void> downloadAll(List<LibFile> allLibs) async {
+  DownloadHelper(this.allLibs);
+
+  Future<void> downloadAll() async {
     manifest = await PastDownloadManifest.load();
 
     print("Checking ${allLibs.length} libraries.");
@@ -51,6 +54,14 @@ class DownloadHelper {
     print("Checked ${allLibs.length} libraries in ${(endTime - startTime) / 1000} seconds.");
 
     manifest.save();
+  }
+
+  String get classpath {
+    List<String> files = [];
+    for (var lib in allLibs){
+      files.add(lib.fullPath);
+    }
+    return files.join(":"); // other os separator? 
   }
   
   Future<bool> downloadLibrary(LibFile lib) async {

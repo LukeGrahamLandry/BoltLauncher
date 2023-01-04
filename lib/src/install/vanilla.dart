@@ -21,7 +21,7 @@ class VanillaInstaller {
 	late PastDownloadManifest manifest;
   List<HashError> errors = [];
   bool hashChecking;
-  List<String> classpath = [];
+  late DownloadHelper downloadHelper;
 
 	VanillaInstaller(this.versionId, {this.hashChecking=true});
 
@@ -53,14 +53,19 @@ class VanillaInstaller {
   }
 
 	Future<void> download(vanilla.VersionFiles data) async {
+    downloadHelper = DownloadHelper(constructLibraries(data));
+    await downloadHelper.downloadAll();
+	}
+
+  List<LibFile> constructLibraries(vanilla.VersionFiles data) {
     List<LibFile> libraries = [data.downloads.client];
 
     for (var lib in data.libraries){
       libraries.addAll(determineDownloadable(lib));
     }
 
-    await DownloadHelper().downloadAll(libraries);
-	}
+    return libraries;
+  }
 
   List<LibFile> determineDownloadable(vanilla.Library lib){
     List<LibFile> toDownload = [];

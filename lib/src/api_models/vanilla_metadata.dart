@@ -41,7 +41,7 @@ class Artifact implements LibFile {
   Map<String, dynamic> toJson() => _$ArtifactToJson(this);
   
   @override
-  String get fullPath => p.join(Locations.dataDirectory, "libraries", path);
+  String get fullPath => p.join(Locations.installDirectory, "libraries", path);
 
   String get jarUrl {
     return url;
