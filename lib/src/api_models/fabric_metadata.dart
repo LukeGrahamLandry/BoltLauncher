@@ -1,7 +1,8 @@
 
 
 import 'package:bolt_launcher/bolt_launcher.dart';
-import 'package:bolt_launcher/src/install/downloader.dart';
+import 'package:bolt_launcher/src/install/util/downloader.dart';
+import 'package:bolt_launcher/src/install/util/remote_file.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import 'package:path/path.dart' as p;
@@ -65,8 +66,8 @@ class LibraryLocation with MavenArtifact {
     init(name, url);
   }
 
-  Future<LibFile> get lib async {
-    return await MavenLibFile.of(this, p.join(Locations.installDirectory, "libraries"));
+  Future<RemoteFile> get lib async {
+    return await MavenFile.of(this, p.join(Locations.installDirectory, "libraries"));
   }
 
   factory LibraryLocation.fromJson(Map<String, dynamic> json) => _$LibraryLocationFromJson(json);

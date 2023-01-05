@@ -15,17 +15,16 @@ part 'cache.g.dart';
 class PastDownloadManifest {
   static bool locked = false;
   Map<String, String> jarLibs;  // name -> sha1
-  Map<String, String> curseforge;  // project-file -> download url
-  Map<String, String> modrinth;
+  Map<String, String> curseforge;
   List<String> fullyInstalledAssetIndexes; 
 
-  PastDownloadManifest(this.jarLibs, this.curseforge, this.modrinth, this.fullyInstalledAssetIndexes);
+  PastDownloadManifest(this.jarLibs, this.curseforge, this.fullyInstalledAssetIndexes);
 
   factory PastDownloadManifest.fromJson(Map<String, dynamic> json) => _$PastDownloadManifestFromJson(json);
   Map<String, dynamic> toJson() => _$PastDownloadManifestToJson(this);
 
 	static Map<String, dynamic> empty() {
-		return PastDownloadManifest({}, {}, {}, []).toJson();
+		return PastDownloadManifest({}, {}, []).toJson();
 	}
 
 	static Future<PastDownloadManifest> open() async {
@@ -33,7 +32,8 @@ class PastDownloadManifest {
       throw Exception("Manifest file is locked.");
     }
     locked = true;
-		return PastDownloadManifest.fromJson(await jsonObjectFile(Locations.manifestFile, PastDownloadManifest.empty()));
+    Map<String, dynamic> data = await jsonObjectFile(Locations.manifestFile, PastDownloadManifest.empty());
+		return PastDownloadManifest.fromJson(data);
 	}
 
 	Future<void> close() async {

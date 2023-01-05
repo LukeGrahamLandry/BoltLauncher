@@ -13,6 +13,7 @@ dev_dependencies:
   json_serializable: ^6.5.4
 dependencies:
   args: ^2.3.1
+  crypto: ^3.0.2
   http: ^0.13.5
   json_annotation: ^4.7.0
   path: ^1.8.3

@@ -3,8 +3,10 @@ import 'dart:io' show File, Platform;
 import 'package:bolt_launcher/bolt_launcher.dart';
 import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart';
 import 'package:bolt_launcher/src/data/cache.dart';
-import 'package:bolt_launcher/src/install/downloader.dart';
+import 'package:bolt_launcher/src/install/util/downloader.dart';
 import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart' as vanilla;
+import 'package:bolt_launcher/src/install/util/problem.dart';
+import 'package:bolt_launcher/src/install/util/remote_file.dart';
 
 import 'package:path/path.dart' as p;
 
@@ -61,9 +63,9 @@ class VanillaInstaller implements MinecraftInstaller {
     await assetDownloadHelper.downloadAll();
 	}
 
-  List<LibFile> constructLibraries(vanilla.VersionFiles data) {
-    List<LibFile> libraries = [data.downloads.client];
-    libraries.add(LibFile(data.assetIndex.url, p.join("assets", "indexes", "$versionId.json"), data.assetIndex.sha1, data.assetIndex.size));
+  List<RemoteFile> constructLibraries(vanilla.VersionFiles data) {
+    List<RemoteFile> libraries = [data.downloads.client];
+    libraries.add(RemoteFile(data.assetIndex.url, p.join("assets", "indexes", "$versionId.json"), data.assetIndex.sha1, data.assetIndex.size));
 
     for (var lib in data.libraries){
       libraries.addAll(determineDownloadable(lib));
@@ -72,8 +74,8 @@ class VanillaInstaller implements MinecraftInstaller {
     return libraries;
   }
 
-  List<LibFile> determineDownloadable(vanilla.Library lib){
-    List<LibFile> toDownload = [];
+  List<RemoteFile> determineDownloadable(vanilla.Library lib){
+    List<RemoteFile> toDownload = [];
 
     if (ruleMatches(lib.rules)) {
       toDownload.add(lib.downloads.artifact);
@@ -94,10 +96,10 @@ class VanillaInstaller implements MinecraftInstaller {
     return toDownload;
   }
 
-  Future<List<LibFile>> constructAssets(vanilla.VersionFiles data) async {
+  Future<List<RemoteFile>> constructAssets(vanilla.VersionFiles data) async {
     File indexFile = File(p.join(Locations.installDirectory, "assets", "indexes", "$versionId.json"));
     AssetIndexHolder indexData = AssetIndexHolder.fromJson(json.decode(await indexFile.readAsString()));
-    List<LibFile> libs = List.of(indexData.objects.values);
+    List<RemoteFile> libs = List.of(indexData.objects.values);
     return libs;
   }
 

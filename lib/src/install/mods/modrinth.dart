@@ -1,8 +1,9 @@
 
 
 import 'package:bolt_launcher/bolt_launcher.dart';
-import 'package:bolt_launcher/src/install/downloader.dart';
+import 'package:bolt_launcher/src/install/util/downloader.dart';
 import 'package:bolt_launcher/src/install/mods/pack.dart';
+import 'package:bolt_launcher/src/install/util/problem.dart';
 
 class ModrinthModpackInstaller implements ModpackInstaller {
   late MinecraftInstaller baseInstaller;

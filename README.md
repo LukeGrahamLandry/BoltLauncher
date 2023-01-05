@@ -34,7 +34,7 @@ BoltLauncher is designed to be easily configured to your project's branding.
     - continuous: `dart run build_runner watch --delete-conflicting-outputs`
 - Run command line app: `dart run cli/main.dart`
 - Build command line app: `dart compile exe cli/main.dart -o bolt`
-    - Use the `--define=AZURE_CLIENT_ID=` option to specify your Microsoft identity platform key. 
+    - Use the `--define=AZURE_CLIENT_ID=put_your_azure_client_id_here` option to specify your Microsoft identity platform key. 
 
 ## Data Location
 

@@ -1,5 +1,6 @@
 import 'package:bolt_launcher/bolt_launcher.dart';
-import 'package:bolt_launcher/src/install/downloader.dart';
+import 'package:bolt_launcher/src/install/util/downloader.dart';
+import 'package:bolt_launcher/src/install/util/remote_file.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:path/path.dart' as p;
 part 'vanilla_metadata.g.dart';
@@ -29,7 +30,7 @@ class VersionList {
 }
 
 @JsonSerializable(explicitToJson: true)
-class Artifact implements LibFile {
+class Artifact implements RemoteFile {
   String path;
   String sha1;
   String url;
@@ -49,7 +50,7 @@ class Artifact implements LibFile {
 }
 
 @JsonSerializable(explicitToJson: true)
-class MainArtifact implements LibFile {
+class MainArtifact implements RemoteFile {
   String sha1;
   String url;
   int? size;
@@ -178,7 +179,7 @@ class AssetIndexHolder {
 }
 
 @JsonSerializable(explicitToJson: true)
-class AssetIndexEntry implements LibFile {
+class AssetIndexEntry implements RemoteFile {
   String hash;
   int? size;
   

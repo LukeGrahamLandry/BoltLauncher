@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'dart:io' show File, Platform;
+import 'package:bolt_launcher/src/install/util/problem.dart';
+import 'package:bolt_launcher/src/install/util/remote_file.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:bolt_launcher/bolt_launcher.dart';
 import 'package:bolt_launcher/src/data/cache.dart';
-import 'package:bolt_launcher/src/install/downloader.dart';
+import 'package:bolt_launcher/src/install/util/downloader.dart';
 import 'package:bolt_launcher/src/api_models/fabric_metadata.dart' as fabric;
 
 mixin FabricInstallerSettings {
@@ -49,13 +51,13 @@ class FabricInstaller with FabricInstallerSettings implements MinecraftInstaller
     await downloadHelper.downloadAll();
   }
 
-  Future<List<LibFile>> constructLibraries(fabric.VersionFiles data) async {
+  Future<List<RemoteFile>> constructLibraries(fabric.VersionFiles data) async {
     List<fabric.LibraryLocation> allLibs = [...data.launcherMeta.libraries.common];
     allLibs.addAll(data.launcherMeta.libraries.client);
     allLibs.add(fabric.LibraryLocation(data.loader.maven, "$defaultMavenUrl/"));
 
     print("Loading maven hashes.");
-    List<LibFile> toDownload = await Future.wait(allLibs.map((lib) => lib.lib));
+    List<RemoteFile> toDownload = await Future.wait(allLibs.map((lib) => lib.lib));
 
     return toDownload;
   }

@@ -1,6 +1,7 @@
 
 import 'package:bolt_launcher/bolt_launcher.dart';
 
+/// White Label Settings
 class LauncherConfig {
   // switching to MANAGED would disallow the player from adding their own mod packs 
   static LauncherMode mode = LauncherMode.LIBRE; // LauncherMode.MANAGED;
@@ -10,16 +11,18 @@ class LauncherConfig {
 
   static void init(){ 
     // // this is where new releases of your launcher will be downloaded from
+    // // leave blank to disable 
+    // // don't comment this out or it will default to BoltLauncher's update url and overwrite your app
     Branding.updatesAppCastUrl = "";
 
     // // used for microsoft authentication. players are trusting the owner of this id with access to their minecraft accounts
     // // get one at https://docs.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app
-    // // or just set it to an empty string to disable and have the game launch in offline mode but that's probably bad cause piracy
-    // Branding.azureClientId = "";
+    // // if you keep this line commented out it will allow you to pass it in a build time so you don't have to commit it to your VCS
+    // Branding.azureClientId = ""; 
 
     // Branding.name = "YourCustomLauncher";
     // Branding.license = "All Rights Reserved";
-    // Branding.homePageDisplayUrl = "https://github.com/LukeGrahamLandry/BoltLauncher";  
+    // Branding.homePageDisplayUrl = "https://github.com/LukeGrahamLandry/BoltLauncher"; 
 
     // // where installed files are stored (just the name of a directory, not the full path as that is handled differently per operating system)
     Branding.dataDirectoryName = Branding.name; 

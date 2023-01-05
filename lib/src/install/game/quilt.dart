@@ -4,7 +4,7 @@ import 'package:path/path.dart' as p;
 
 import 'package:bolt_launcher/bolt_launcher.dart';
 import 'package:bolt_launcher/src/data/cache.dart';
-import 'package:bolt_launcher/src/install/downloader.dart';
+import 'package:bolt_launcher/src/install/util/downloader.dart';
 import 'package:bolt_launcher/src/api_models/fabric_metadata.dart' as fabric;
 
 
