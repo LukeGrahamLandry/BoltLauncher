@@ -1,17 +1,12 @@
 import 'dart:convert';
 import 'dart:io' show File, Platform;
 import 'package:bolt_launcher/bolt_launcher.dart';
+import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart';
+import 'package:bolt_launcher/src/data/cache.dart';
 import 'package:bolt_launcher/src/install/downloader.dart';
+import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart' as vanilla;
 
-import '../api_models/vanilla_metadata.dart';
-import '../data/cache.dart';
-import '../data/locations.dart';
-import '../data/options.dart';
-import 'package:json_annotation/json_annotation.dart';
 import 'package:path/path.dart' as p;
-import 'package:http/http.dart' as http;
-import '../api_models/vanilla_metadata.dart' as vanilla;
-import 'package:crypto/crypto.dart';
 
 void installVanilla(String versionId) async {
   await VanillaInstaller(versionId).install();
@@ -21,7 +16,7 @@ abstract class MinecraftInstaller {
   String get versionId;
   String get launchClassPath;
   Future<String> get launchMainClass;
-  List<HashError> get errors;
+  List<Problem> get errors;
   Future<void> install();
 }
 
@@ -62,7 +57,7 @@ class VanillaInstaller implements MinecraftInstaller {
     jarDownloadHelper = DownloadHelper(constructLibraries(data));
     await jarDownloadHelper.downloadAll();
 
-    assetDownloadHelper = DownloadHelper(await constructAssets(data));
+    assetDownloadHelper = AssetsDownloadHelper(await constructAssets(data), data.assetIndex.sha1);
     await assetDownloadHelper.downloadAll();
 	}
 
@@ -129,7 +124,7 @@ class VanillaInstaller implements MinecraftInstaller {
   }
   
   @override
-  List<HashError> get errors => jarDownloadHelper.errors;
+  List<Problem> get errors => [...jarDownloadHelper.errors, ...assetDownloadHelper.errors];
 }
 
 List<String> getOS(){

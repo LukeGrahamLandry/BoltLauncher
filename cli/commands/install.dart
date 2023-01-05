@@ -1,11 +1,9 @@
-import 'package:bolt_launcher/src/install/fabric.dart';
-import 'package:bolt_launcher/src/install/quilt.dart';
-
 import 'help.dart';
-import 'package:bolt_launcher/bolt_launcher.dart';
 import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:args/args.dart';
+
+import 'package:bolt_launcher/bolt_launcher.dart';
 
 void installCommand(List<String> arguments) async {
   final parser = ArgParser()
@@ -61,11 +59,10 @@ Future<void> installMinecraft(String loader, String version, bool hashChecking) 
     if (installer.errors.isEmpty){
       print("Minecraft $loader $version has been installed.");
     } else {
-      print("=== ERROR ===");
-      print("${installer.errors.length} files were not downloaded because they did not match the expected hash.");
-      print("Use the 'settings' command to change your metadata server and try again.");
-      print("Or, run again with (--no-hashChecking) to ignore these errors and force download. This is probably a very bad idea.");
-      print("");
+      print("=== FAILED WITH ${installer.errors.length} ERRORS ===");
+      installer.errors.forEach((element) {
+        print(element.message);
+      });
     }
 }
 

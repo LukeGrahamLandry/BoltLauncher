@@ -5,6 +5,9 @@ import 'package:path/path.dart' as path;
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+
+// maybe split commands bolt meta urls --key value and bolt meta optimization --key value
+
 class GlobalOptions {
   static bool recomputeHashesBeforeLaunch = false;
   static bool checkHashesAfterDownload = true;
@@ -13,7 +16,11 @@ class GlobalOptions {
 
   static MetaSources metadataUrls = MetaSources.initial();
 
-  static int bytesPerMB = 1000000;  // only used for reporting download sizes. either 10^6=1000000 or 2^20=1048576 (or 10^3*2^10=1024000 if you're insane)
+  // only used for reporting download sizes. either 10^6=1000000 or 2^20=1048576 (or 10^3*2^10=1024000 if you're insane)
+  static int bytesPerMB = 1000000;
+
+  // having this off only saves ~70 milliseconds but feels clever. only a problem if they go in and delete the install/assets/objects files without deleting the manifest 
+  static bool reConfirmAssetsExistBeforeLaunch = false;  
 }
 
 class MetaSources {

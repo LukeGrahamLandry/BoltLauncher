@@ -1,17 +1,11 @@
 import 'dart:convert';
 import 'dart:io' show File, Platform;
-import 'package:bolt_launcher/bolt_launcher.dart';
-import 'package:bolt_launcher/src/install/downloader.dart';
-
-import '../data/cache.dart';
-import '../data/locations.dart';
-import '../data/options.dart';
-import 'package:json_annotation/json_annotation.dart';
 import 'package:path/path.dart' as p;
-import 'package:http/http.dart' as http;
-import '../api_models/vanilla_metadata.dart' as vanilla;
-import '../api_models/fabric_metadata.dart' as fabric;
-import 'package:crypto/crypto.dart';
+
+import 'package:bolt_launcher/bolt_launcher.dart';
+import 'package:bolt_launcher/src/data/cache.dart';
+import 'package:bolt_launcher/src/install/downloader.dart';
+import 'package:bolt_launcher/src/api_models/fabric_metadata.dart' as fabric;
 
 mixin FabricInstallerSettings {
   String get defaultMavenUrl => GlobalOptions.metadataUrls.fabricMaven;
@@ -102,5 +96,5 @@ class FabricInstaller with FabricInstallerSettings implements MinecraftInstaller
   String get versionId => vanilla.versionId;
 
   @override
-  List<HashError> get errors => downloadHelper.errors + vanilla.jarDownloadHelper.errors;
+  List<Problem> get errors => downloadHelper.errors + vanilla.jarDownloadHelper.errors;
 }

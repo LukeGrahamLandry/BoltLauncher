@@ -1,10 +1,10 @@
 
 import 'dart:io';
-import 'package:bolt_launcher/src/install/fabric.dart';
-import 'package:bolt_launcher/src/install/quilt.dart';
+import 'package:bolt_launcher/src/install/game/fabric.dart';
+import 'package:bolt_launcher/src/install/game/quilt.dart';
 import 'package:path/path.dart' as p;
 import 'data/locations.dart';
-import 'install/vanilla.dart';
+import 'install/game/vanilla.dart';
 
 void testLaunchMinecraft(){
   String versionId = "1.19.3";

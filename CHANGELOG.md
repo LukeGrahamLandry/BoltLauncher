@@ -1,3 +1,7 @@
+## 23.01.05-dev
+
+- retry failed downloads
+- store asset index hash in manifest instead of rechecking files 
 
 ## 23.01.03-dev
 

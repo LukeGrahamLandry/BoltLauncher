@@ -1,17 +1,12 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
-
 import 'package:json_annotation/json_annotation.dart';
-
 import 'package:path/path.dart' as p;
-
-import '../data/options.dart';
 import 'package:http/http.dart' as http;
-import '../api_models/vanilla_metadata.dart' as vanilla;
-import '../api_models/fabric_metadata.dart' as fabric;
 
-import 'locations.dart';
+import 'package:bolt_launcher/bolt_launcher.dart';
+import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart' as vanilla;
+import 'package:bolt_launcher/src/api_models/fabric_metadata.dart' as fabric;
 
 part 'cache.g.dart';
 
@@ -22,15 +17,15 @@ class PastDownloadManifest {
   Map<String, String> jarLibs;  // name -> sha1
   Map<String, String> curseforge;  // project-file -> download url
   Map<String, String> modrinth;
-  Map<String, String> other;  // assets
+  List<String> fullyInstalledAssetIndexes; 
 
-  PastDownloadManifest(this.jarLibs, this.curseforge, this.modrinth, this.other);
+  PastDownloadManifest(this.jarLibs, this.curseforge, this.modrinth, this.fullyInstalledAssetIndexes);
 
   factory PastDownloadManifest.fromJson(Map<String, dynamic> json) => _$PastDownloadManifestFromJson(json);
   Map<String, dynamic> toJson() => _$PastDownloadManifestToJson(this);
 
 	static Map<String, dynamic> empty() {
-		return PastDownloadManifest({}, {}, {}, {}).toJson();
+		return PastDownloadManifest({}, {}, {}, []).toJson();
 	}
 
 	static Future<PastDownloadManifest> open() async {

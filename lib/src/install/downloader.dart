@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io' show File, FileMode, Platform;
+import 'dart:math';
 import 'dart:typed_data';
 import 'package:bolt_launcher/bolt_launcher.dart';
 import 'package:http/http.dart';
@@ -14,17 +15,37 @@ import '../api_models/vanilla_metadata.dart' as vanilla;
 import 'package:crypto/crypto.dart';
 
 
-class HashError {
+abstract class Problem {
+  String get message;
+
+  void log() {
+    print(message);
+  }
+}
+
+class HashProblem extends Problem {
   String wanted;
   String got;
   String url;
 
-  HashError(this.wanted, this.got, this.url);
+  HashProblem(this.wanted, this.got, this.url);
+  
+  @override
+  String get message => "Expected sha1=$wanted from $url but got sha1=$got";
+}
+
+class HttpProblem extends Problem {
+  String errorMessage;
+  String url;
+  HttpProblem(this.errorMessage, this.url);
+  
+  @override
+  String get message => "$errorMessage $url";
 }
 
 class DownloadHelper {
   late PastDownloadManifest manifest;
-  List<HashError> errors = [];
+  List<Problem> errors = [];
   List<LibFile> allLibs;
   int count = 0;
   int totalSize = 0;
@@ -42,39 +63,34 @@ class DownloadHelper {
 
     int startTime = DateTime.now().millisecondsSinceEpoch;
 
-    try {
-      httpClient = Client();
+    httpClient = Client();
 
-      for (LibFile lib in allLibs){
-        if (lib.size != null){
-          totalSize += lib.size!;
-        } else {
-          showSizeProgress = false;
-          break;
-        }
+    for (LibFile lib in allLibs){
+      if (lib.size != null){
+        totalSize += lib.size!;
+      } else {
+        showSizeProgress = false;
+        break;
       }
-
-      print("Checking ${allLibs.length} files${showSizeProgress ? " (${(totalSize/1000000).toStringAsFixed(0)} MB)" : ""}");
-      
-      // if i dont split it into chunks, it freezes on the Future.wait for a really long time before downloading anything
-      // i guess its starting all the connections before it gives any time to actually downloading so theres no sense of progress 
-      // but dowing it syncronously in a for loop awaiting each individually was a lot slower 
-      var len = allLibs.length;
-      var size = 50;
-      List<List<LibFile>> chunks = [];
-      for(var i = 0; i< len; i+= size){    
-          var end = (i+size<len)?i+size:len;
-          chunks.add(allLibs.sublist(i,end));
-      }
-
-      for (List<LibFile> libs in chunks){
-        await Future.wait(libs.map((lib) => downloadLibrary(lib)));
-      }
-    } catch(e, stacktrace) {
-      print("Download process failed with error: ");
-      print(e.toString());
-      print(stacktrace);
     }
+
+    print("Checking ${allLibs.length} files${showSizeProgress ? " (${(totalSize/1000000).toStringAsFixed(0)} MB)" : ""}");
+    
+    // if i dont split it into chunks, it freezes on the Future.wait for a really long time before downloading anything
+    // i guess its starting all the connections before it gives any time to actually downloading so theres no sense of progress 
+    // but dowing it syncronously in a for loop awaiting each individually was a lot slower 
+    var len = allLibs.length;
+    var size = 50;
+    List<List<LibFile>> chunks = [];
+    for(var i = 0; i< len; i+= size){    
+        var end = (i+size<len)?i+size:len;
+        chunks.add(allLibs.sublist(i,end));
+    }
+
+    for (List<LibFile> libs in chunks){
+      await Future.wait(libs.map((lib) => downloadLibrary(lib)));
+    }
+    
     httpClient.close();
     
     int endTime = DateTime.now().millisecondsSinceEpoch;
@@ -84,9 +100,12 @@ class DownloadHelper {
       msg += "Of ${(totalSize/1000000).toStringAsFixed(0)} MB, $cachePercentage% found in cache. ";
     }
     msg +="${(totalDownloadSize/1000000).toStringAsFixed(0)} MB downloaded.";
+    if (errors.isNotEmpty) {
+      msg += "Download incomplete with ${errors.length} errors.";
+    }
     print(msg);
 
-    manifest.close();
+    await manifest.close();
   }
 
   String get classPath {
@@ -111,17 +130,33 @@ class DownloadHelper {
 
     Request request = Request("get", Uri.parse(lib.url));
 
-    StreamedResponse response;
-    try {
-      response = await httpClient.send(request);
-    } catch (e) {
-      print("${e.toString()} ${lib.url}");
+    StreamedResponse? response;
+    Problem? finalProblem;
+    
+    // retry 20 times
+    for (int i=0; i<20; i++){
+      try {
+        response = await httpClient.send(request);
+        finalProblem = null;
+        break;
+      } catch (e) {
+        finalProblem = HttpProblem(e.toString(), lib.url)..log();
+        await Future.delayed(const Duration(milliseconds: 50));
+      }
+    }
+
+    if (finalProblem != null){
+      errors.add(finalProblem);
       return false;
     }
-    
+
+    if (response == null){  // i dont think this is possible without finalProblem being non-null above
+      errors.add(HttpProblem("null response", lib.url)..log());
+      return false;
+    }
 
     if (response.statusCode != 200){
-      print("${lib.url} ${response.statusCode}");
+      errors.add(HttpProblem("Status code ${response.statusCode}", lib.url)..log());
       return false;
     }
 
@@ -131,7 +166,7 @@ class DownloadHelper {
     if (GlobalOptions.checkHashesAfterDownload){
       var digest = sha1.convert(bodyBytes);
       if (digest.toString() != lib.sha1){
-        errors.add(HashError(lib.sha1, digest.toString(), lib.url));
+        errors.add(HashProblem(lib.sha1, digest.toString(), lib.url));
         print("Error downloading from ${lib.url}");
         print("- Expected sha1=${lib.sha1} but got $digest");
         count++;
@@ -144,7 +179,8 @@ class DownloadHelper {
 
     await file.create(recursive: true);
     await file.writeAsBytes(bodyBytes);
-    (lib.path.endsWith(".jar") ? manifest.jarLibs : manifest.other)[lib.path] = lib.sha1;
+
+    addToManifestCache(lib);
     count++;
     
     String msg = "($count/${allLibs.length} files";
@@ -167,30 +203,22 @@ class DownloadHelper {
 
     if (lib.path.endsWith(".jar")){
       // TODO: some sort of locking
-      await File(p.join(Locations.dataDirectory, "executables-download-history.txt")).writeAsString("${DateTime.now()} ${lib.url} ${lib.sha1}\n", mode: FileMode.append);
+      await File(p.join(Locations.dataDirectory, "executables-download-history.csv")).writeAsString("${DateTime.now()},${lib.url},${lib.sha1}\n", mode: FileMode.append);
     }
-
 
     return true;
   }
 
   Future<bool> isCached(LibFile lib) async {
-    String? manifestHash = (lib.path.endsWith(".jar") ? manifest.jarLibs : manifest.other)[lib.path];
-    if (manifestHash == null) return false;
+    String? manifestHash = manifest.jarLibs[lib.path];
+    if (manifestHash == null && manifest.jarLibs.isNotEmpty) return false;
 
     var file = File(lib.fullPath);
     bool filePresent = await file.exists();
     if (!filePresent) return false;
 
-    if (GlobalOptions.recomputeHashesBeforeLaunch){
-      var bytes = await file.readAsBytes();
-      var fileSystemHash = sha1.convert(await File(lib.fullPath).readAsBytes()).toString();
-      return fileSystemHash == lib.sha1;
-    } 
-    
     bool matchesManifest = manifestHash == lib.sha1;
-
-    if (!matchesManifest){
+    if (!matchesManifest && manifestHash != null){
       print("WARNING");
       print("Desired hash of ${lib.path} changed since last download.");
       print("Was ${manifestHash}, now ${lib.sha1}");
@@ -198,7 +226,56 @@ class DownloadHelper {
       print("=======");
     }
 
+    if (GlobalOptions.recomputeHashesBeforeLaunch || manifest.jarLibs.isEmpty){
+      var bytes = await file.readAsBytes();
+      var fileSystemHash = sha1.convert(await File(lib.fullPath).readAsBytes()).toString();
+      return fileSystemHash == lib.sha1;
+    } 
+
     return matchesManifest;
+  }
+  
+  void addToManifestCache(LibFile lib) {
+    manifest.jarLibs[lib.path] = lib.sha1;
+  }
+}
+
+// since the minecraft assets are named based on their hash, i don't have to clutter up the manifest with them and still don't have to wast time recomputing it from the files 
+class AssetsDownloadHelper extends DownloadHelper {
+  String indexHash;
+
+  AssetsDownloadHelper(super.allLibs, this.indexHash);
+
+  @override
+  Future<void> downloadAll() async {
+    // 2023-01-05 fabric 1.19.3
+    // saves ~70 ms vs checking the hash of each file individually 
+    if (!GlobalOptions.reConfirmAssetsExistBeforeLaunch){
+      manifest = await PastDownloadManifest.open();
+      PastDownloadManifest.locked = false;
+      if (manifest.fullyInstalledAssetIndexes.contains(indexHash)){
+        print("Asset index $indexHash already processed.");
+        return;
+      }
+    }
+
+    await super.downloadAll();
+
+    if (errors.isEmpty){
+      manifest = await PastDownloadManifest.open();
+      manifest.fullyInstalledAssetIndexes.add(indexHash);
+      await manifest.close();
+    }
+  }
+
+  @override
+  Future<bool> isCached(LibFile lib) async {
+    return File(lib.fullPath).exists();
+  }
+
+  @override
+  void addToManifestCache(LibFile lib) {
+    
   }
 }
 

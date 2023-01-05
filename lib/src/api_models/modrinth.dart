@@ -1,0 +1,9 @@
+
+class ModrinthModpackData {
+  
+}
+
+
+class ModrinthSearchResult {
+  
+}
