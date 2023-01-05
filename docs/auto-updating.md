@@ -1,0 +1,1 @@
+appcast rss feed seems like the standard

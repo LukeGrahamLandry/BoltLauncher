@@ -100,7 +100,7 @@ Arguments:
   --password
     set a password that must be included with any future commands (using the --pw option). 
 
-For api scheme details see: https://github.com/LukeGrahamLandry/BoltLauncher/tree/main/docs/api-formats
+For api scheme details see: https://github.com/LukeGrahamLandry/BoltLauncher/tree/main/docs/metadata.md
 The ${Branding.dataDirEnvVarName} environment variable determines where data is stored. 
 
 ## update 
@@ -136,7 +136,7 @@ Flags:
 ## help
 
 ${Branding.name} is a command line modpack manager. It will help you install and launch Minecraft. 
-Source code: ${Branding.github}
+${Branding.homePageDisplayUrl}
 
 Use a command with no arguments for more detailed help.
 

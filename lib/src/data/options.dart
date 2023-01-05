@@ -8,7 +8,6 @@ import 'dart:convert';
 class GlobalOptions {
   static bool recomputeHashesBeforeLaunch = false;
   static bool checkHashesAfterDownload = true;
-  static String? azureClientId = bool.hasEnvironment("AZURE_CLIENT_ID") ? String.fromEnvironment("AZURE_CLIENT_ID") : null;
   // static bool checkSignaturesOnDownload = true;  // TODO
   // static String pgpCommand = "gpg"
 
@@ -29,7 +28,11 @@ class MetaSources {
 
   String curseMaven = "https://www.cursemaven.com/test";
 
-  MetaSources(this.vanilla, this.assets, this.fabric, this.fabricMaven, this.quilt, this.quiltMaven, this.curseMaven);
+  String? azureClientId;
+
+  MetaSources(this.vanilla, this.assets, this.fabric, this.fabricMaven, this.quilt, this.quiltMaven, this.curseMaven, this.azureClientId){
+    azureClientId ??= Branding.azureClientId;
+  }
 
   MetaSources.initial();
 }
@@ -53,9 +56,11 @@ class WellKnownLocations {
 class Branding {
   static String name = "BoltLauncher";
   static String binaryName = "bolt";
-  static String github = "https://github.com/LukeGrahamLandry/BoltLauncher";
+  static String homePageDisplayUrl = "https://github.com/LukeGrahamLandry/BoltLauncher";
   static String dataDirectoryName = name;
   static String dataDirEnvVarName = "BOLT_LAUNCHER_FOLDER";
+  static String azureClientId = "";
+  static String updatesAppCastUrl = "";
 
   static String privacyPolicy = 
 """

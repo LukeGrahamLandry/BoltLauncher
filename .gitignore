@@ -19,5 +19,3 @@ bolt
 
 # dart run build_runner build
 **/*.g.dart
-
-docs

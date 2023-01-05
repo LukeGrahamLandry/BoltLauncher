@@ -21,6 +21,10 @@ can handle everything behind the scenes and you can focus on providing a great i
 - (WIP) Microsoft Auth
 - (WIP) Manage game profiles with different mods
 
+## White Labeling
+
+BoltLauncher is designed to be easily configured to your project's branding. 
+
 ## Developing 
 
 - [Install the Dart SDK](https://dart.dev/get-dart)
