@@ -1,4 +1,9 @@
+
 ## 23.01.05-dev
+
+- copy files from well known install locations (mojang, curseforge) instead of downloading when possible
+
+## 23.01.04-dev
 
 - retry failed downloads
 - store asset index hash in manifest instead of rechecking files 

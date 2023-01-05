@@ -42,11 +42,14 @@ class Artifact implements RemoteFile {
   Map<String, dynamic> toJson() => _$ArtifactToJson(this);
   
   @override
-  String get fullPath => p.join(Locations.installDirectory, "libraries", path);
+  String get fullPath => p.join(Locations.installDirectory, wellKnownSubFolder, path);
 
   String get jarUrl {
     return url;
   }
+  
+  @override
+  String get wellKnownSubFolder => "libraries";
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -64,9 +67,7 @@ class MainArtifact implements RemoteFile {
   Map<String, dynamic> toJson() => _$MainArtifactToJson(this);
     
   @override
-  String get fullPath {
-    return p.join(Locations.installDirectory, "versions", path);
-  }
+  String get fullPath => p.join(Locations.installDirectory, wellKnownSubFolder, path);
 
   @override
   String get path {
@@ -76,6 +77,9 @@ class MainArtifact implements RemoteFile {
   String get jarUrl {
     return url;
   }
+  
+  @override
+  String get wellKnownSubFolder => "versions";
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -189,7 +193,7 @@ class AssetIndexEntry implements RemoteFile {
   Map<String, dynamic> toJson() => _$AssetIndexEntryToJson(this);
   
   @override
-  String get fullPath => p.join(Locations.installDirectory, "assets", "objects", path);
+  String get fullPath => p.join(Locations.installDirectory, wellKnownSubFolder, path);
   
   @override
   String get path => "${sha1[0]}${sha1[1]}/$sha1";
@@ -199,4 +203,7 @@ class AssetIndexEntry implements RemoteFile {
   
   @override
   String get sha1 => hash;
+  
+  @override
+  String get wellKnownSubFolder => p.join("assets", "objects");
 }

@@ -21,6 +21,13 @@ class GlobalOptions {
 
   // having this off only saves ~70 milliseconds but feels clever. only a problem if they go in and delete the install/assets/objects files without deleting the manifest 
   static bool reConfirmAssetsExistBeforeLaunch = false;  
+
+  static List<String> get wellKnownInstallLocations => defaultWellKnown();
+}
+
+// TODO: other operating systems 
+List<String> defaultWellKnown() {
+  return [path.join(Locations.homeDirectory, "Library", "Application Support", "minecraft"), path.join(Locations.homeDirectory, "Documents", "curseforge", "minecraft", "Install")];
 }
 
 class MetaSources {
@@ -42,22 +49,6 @@ class MetaSources {
   }
 
   MetaSources.initial();
-}
-
-class WellKnownLocations {
-  late List<String> libraries;
-  late List<String> assetObjects;
-  late List<String> versions;
-
-  WellKnownLocations(this.libraries, this.assetObjects, this.versions);
-
-  WellKnownLocations.initial(){
-    // TODO: check on other os
-    List<String> installDirs = [path.join(Locations.homeDirectory, "Library", "Application Support", "minecraft"), path.join(Locations.homeDirectory, "Documents", "curseforge", "Install")];
-    libraries = List.of(installDirs.map((e) => path.join(e, "libraries")));
-    assetObjects = List.of(installDirs.map((e) => path.join(e, "assets", "objects")));
-    versions = List.of(installDirs.map((e) => path.join(e, "versions")));
-  }
 }
 
 class Branding {

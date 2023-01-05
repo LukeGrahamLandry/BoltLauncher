@@ -15,8 +15,11 @@ class DownloadHelper {
   List<RemoteFile> toDownload;
   late Client httpClient;
   DownloadProgressTracker progress;
+  late List<String> localSearchLocations;
 
-  DownloadHelper(this.toDownload) : progress = DownloadProgressTracker(toDownload);
+  DownloadHelper(this.toDownload, {List<String>? localSearchLocations}) : progress = DownloadProgressTracker(toDownload) {
+    this.localSearchLocations = localSearchLocations ?? [];
+  }
 
   Future<void> downloadAll() async {
     progress.logStart();
@@ -38,8 +41,18 @@ class DownloadHelper {
       return true;
     }
 
-    var file = File(lib.fullPath);
-    await file.create(recursive: true);
+    var targetFile = File(lib.fullPath);
+    await targetFile.create(recursive: true);
+
+    for (String wellKnownInstall in GlobalOptions.wellKnownInstallLocations){
+      var checkFile = File(p.join(wellKnownInstall, lib.wellKnownSubFolder, lib.path));
+      if (await checkWellKnown(checkFile, lib)){
+          await checkFile.copy(lib.fullPath);
+          progress.logWellKnown(lib, wellKnownInstall);
+          addToManifestCache(lib);
+          return true;
+        } 
+    }
 
     Request request = Request("get", Uri.parse(lib.url));
 
@@ -70,18 +83,17 @@ class DownloadHelper {
     }
 
     int length = response.contentLength ?? 0;
-    var sink = file.openWrite();
+    var sink = targetFile.openWrite();
     Future.doWhile(() async {
-      var received = await file.length();
+      var received = await targetFile.length();
       progress.logDownloading(lib, received, length);
       return received < length;
     });
 
     await response.stream.pipe(sink);
 
-
     if (GlobalOptions.checkHashesAfterDownload){
-      var digest = sha1.convert(await file.readAsBytes());
+      var digest = sha1.convert(await targetFile.readAsBytes());
       if (digest.toString() != lib.sha1){
         progress.logFailed(lib, HashProblem(lib.sha1, digest.toString(), lib.url));
         return false;
@@ -89,11 +101,11 @@ class DownloadHelper {
     }
 
     addToManifestCache(lib);
-    progress.logDownloaded(lib, await file.length());
+    progress.logDownloaded(lib, await targetFile.length());
 
     await manifest.quickSave();
 
-    if (lib.path.endsWith(".jar")){
+    if (RemoteFile.isCode(lib)){
       // TODO: some sort of locking
       await File(p.join(Locations.dataDirectory, "executables-download-history.csv")).writeAsString("${DateTime.now()},${lib.url},${lib.sha1}\n", mode: FileMode.append);
     }
@@ -150,6 +162,12 @@ class DownloadHelper {
     }
     return files.join(":"); // other os separator? 
   }
+  
+   Future<bool> checkWellKnown(File checkFile, RemoteFile lib) async {
+    if (!await checkFile.exists()) return false;
+    var digest = sha1.convert(await checkFile.readAsBytes());
+    return digest.toString() == lib.sha1;
+  }
 }
 
 // since the minecraft assets are named based on their hash, i don't have to clutter up the manifest with them and still don't have to wast time recomputing it from the files 
@@ -188,5 +206,10 @@ class AssetsDownloadHelper extends DownloadHelper {
   @override
   void addToManifestCache(RemoteFile lib) {
     
+  }
+
+  @override
+  Future<bool> checkWellKnown(File checkFile, RemoteFile lib) async {
+    return checkFile.exists();
   }
 }

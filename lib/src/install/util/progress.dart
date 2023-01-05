@@ -1,7 +1,8 @@
 import 'package:bolt_launcher/bolt_launcher.dart';
 import 'package:bolt_launcher/src/install/util/problem.dart';
-
 import 'remote_file.dart';
+
+import 'package:path/path.dart' as p;
 
 class DownloadProgressTracker {
   int totalFileCount = 0;
@@ -72,14 +73,24 @@ class DownloadProgressTracker {
   }
 
   void logExpectedHashChanged(RemoteFile lib, String manifestHash) {
-    print("WARNING");
-    print("Desired hash of ${lib.path} changed since last download.");
-    print("Was $manifestHash, now ${lib.sha1}");
-    print("File will be re-downloaded but this is very concerning.");
-    print("=======");
+    if (RemoteFile.isCode(lib)){
+      print("WARNING");
+      print("Desired hash of ${lib.path} changed since last download.");
+      print("Was $manifestHash, now ${lib.sha1}");
+      print("File will be re-downloaded but this is very concerning.");
+      print("=======");
+    }
   }
 
   void logDownloading(RemoteFile lib, int receivedBytes, int totalBytes) {
     // show incremental download in gui
+  }
+
+  void logWellKnown(RemoteFile lib, String wellKnownInstall) {
+    processedFileCount++;
+
+    String msg = "($processedFileCount/$totalFileCount files) ${p.join(wellKnownInstall, lib.wellKnownSubFolder, lib.path)}";
+    
+    print(msg);
   }
 }

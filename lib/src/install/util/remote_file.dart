@@ -7,6 +7,7 @@ class RemoteFile {
   final String url;
   final String path;
   final String sha1;
+  String get wellKnownSubFolder => "";
   int? size;
 
   RemoteFile(this.url, this.path, this.sha1, this.size);
@@ -14,6 +15,8 @@ class RemoteFile {
   String get fullPath {
     return p.join(Locations.installDirectory, path);
   }
+
+  static bool isCode(RemoteFile lib) => lib.fullPath.endsWith(".jar");
 }
 
 // class LibFileAt extends LibFile {
@@ -50,6 +53,9 @@ class MavenFile implements RemoteFile {
   
   @override
   int? size;
+  
+  @override
+  String get wellKnownSubFolder => "libraries";
 }
 
 mixin MavenArtifact {
