@@ -48,16 +48,27 @@ class DownloadHelper {
     }
 
     var targetFile = File(lib.fullPath);
-    await targetFile.create(recursive: true);
+    await targetFile.parent.create(recursive: true);
 
     for (String wellKnownInstall in GlobalOptions.wellKnownInstallLocations){
       var checkFile = File(p.join(wellKnownInstall, lib.wellKnownSubFolder, lib.path));
+
+      // don't bother downloading the file if we can find it in an install by another launcher, just borrow it from there
       if (await checkWellKnown(checkFile, lib)){
+        // 2023-01-05 1.19.3
+        // copy all assets from borrowed: 1.346 seconds
+        // link all assets to borrowed:   0.547 seconds
+        try {
+          await Link.fromUri(targetFile.uri).create(checkFile.path);
+        } catch (e){
+          // if anything goes wrong, like windows weird permissions stuff. just fall back to old reliable 
           await checkFile.copy(lib.fullPath);
-          progress.logWellKnown(lib, wellKnownInstall);
-          addToManifestCache(lib);
-          return true;
-        } 
+        }
+        
+        progress.logWellKnown(lib, wellKnownInstall);
+        addToManifestCache(lib);
+        return true;
+      } 
     }
 
     Request request = Request("get", Uri.parse(lib.url));
@@ -125,7 +136,6 @@ class DownloadHelper {
 
   Future<bool> isCached(RemoteFile lib) async {
     String? manifestHash = manifest.jarLibs[lib.path];
-    if (manifestHash == null && manifest.jarLibs.isNotEmpty) return false;
 
     var file = File(lib.fullPath);
     bool filePresent = await file.exists();
@@ -136,7 +146,7 @@ class DownloadHelper {
       progress.logExpectedHashChanged(lib, manifestHash);
     }
 
-    if (GlobalOptions.recomputeHashesBeforeLaunch || manifest.jarLibs.isEmpty){
+    if (GlobalOptions.recomputeHashesBeforeLaunch || manifestHash == null){
       var bytes = await file.readAsBytes();
       var fileSystemHash = sha1.convert(await File(lib.fullPath).readAsBytes()).toString();
       return fileSystemHash == lib.sha1;
