@@ -38,7 +38,8 @@ class PastDownloadManifest {
 	}
 
 	Future<void> close() async {
-		await writeJsonObjectFile(Locations.manifestFile, toJson());
+    // TODO: just disabled for testing
+		// await writeJsonObjectFile(Locations.manifestFile, toJson());
     locked = false;
 	}
 

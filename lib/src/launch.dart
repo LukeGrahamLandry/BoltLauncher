@@ -46,14 +46,6 @@ void launchMinecraft(MinecraftInstaller installer, String gameDir) async {
     "-XstartOnFirstThread",
     "-cp",
     installer.launchClassPath,
-
-    // TODO: move args definition into installer class
-    // start ForgeWrapper
-    "-Dforgewrapper.librariesDir=${p.join(Locations.installDirectory, "libraries")}",
-    "-Dforgewrapper.installer=${(installer as ForgeWrapperInstaller).officialForgeInstaller.fullPath}",
-    "-Dforgewrapper.minecraft=${p.join(Locations.installDirectory, "versions", installer.versionId, "${installer.versionId}.jar")}",
-    // end ForgeWrapper
-
     await installer.launchMainClass,
     "--version",
     installer.versionId, 

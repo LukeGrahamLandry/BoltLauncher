@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:bolt_launcher/bolt_launcher.dart';
@@ -5,8 +6,10 @@ import 'package:bolt_launcher/src/data/cache.dart';
 import 'package:bolt_launcher/src/install/util/downloader.dart';
 import 'package:bolt_launcher/src/install/util/problem.dart';
 import 'package:bolt_launcher/src/api_models/prism_metadata.dart' as prism;
+import 'package:bolt_launcher/src/api_models/forge_metadata.dart' as forge;
 import 'package:bolt_launcher/src/install/util/remote_file.dart';
 import 'package:path/path.dart' as p;
+import 'package:archive/archive_io.dart';
 
 class ForgeWrapperInstaller implements MinecraftInstaller {	
   String minecraftVersion;
@@ -25,34 +28,72 @@ class ForgeWrapperInstaller implements MinecraftInstaller {
   Future<void> install() async {
     await vanilla.install();
 
-    var metadata = await getMetadata();
-    if (metadata == null){
-			print("Forge $minecraftVersion $loaderVersion not found.");
-			return;
-		}
-
     officialForgeInstaller = (await findInstaller())!;
-    downloadHelper = DownloadHelper(List.of(metadata.libraries.map((e) => e.downloads.artifact))..add(officialForgeInstaller));
+    List<RemoteFile> files = [officialForgeInstaller];
+    downloadHelper = DownloadHelper(files);
     await downloadHelper.downloadAll();
-  }
 
-  Future<prism.VersionFiles?> getMetadata() async {
-    prism.VersionList versionData = await MetadataCache.forgeVersions;
+    File forgeJar = File(officialForgeInstaller.fullPath);
+    Directory forgeContents = Directory(p.join(forgeJar.parent.path, "$loaderVersion-installer-contents"));
+    var zipped = ZipDecoder().decodeBytes(await forgeJar.readAsBytes());
 
-    bool exists = false;
-    for (var version in versionData.versions){
-      if (version.version == loaderVersion){
-        exists = true;
-        break;
+    for (var file in zipped){
+      final filename = '${forgeContents.path}/${file.name}';
+      if (file.isFile) {
+        var outFile = File(filename);
+        outFile = await outFile.create(recursive: true);
+        await outFile.writeAsBytes(file.content);
+      } else {
+        await Directory(filename).create(recursive: true);
       }
     }
 
-    if (!exists){
-      print("Forge version $loaderVersion not found");
-      return null;
-    }
+    forge.InstallProfile profile = forge.InstallProfile.fromJson(json.decode(File(p.join(forgeContents.path, "install_profile.json")).readAsStringSync()));
 
-     return prism.VersionFiles.fromJson(await cachedFetchJson("${GlobalOptions.metadataUrls.prismLike}/net.minecraftforge/$loaderVersion.json", "forge-$loaderVersion.json"));
+    List<RemoteFile> forgeLibs = List.of(profile.libraries.map((e) => e.downloads.artifact));
+    downloadHelper = DownloadHelper(forgeLibs);
+    await downloadHelper.downloadAll();
+    
+    // evaluate processor parameter replacements 
+    Map<String, String> argValues = {
+      "ROOT": p.join(Locations.dataDirectory),
+      "INSTALLER": officialForgeInstaller.fullPath,
+      "MINECRAFT_JAR": p.join(Locations.dataDirectory, "versions", "1.19.3", "1.19.3.jar"),  // TODO
+      "SIDE": "CLIENT"
+    };
+    profile.data.forEach((key, value) {
+      if (value.client.startsWith("[")){  // maven
+        argValues[key] = p.join(Locations.dataDirectory, "libraries", MavenArtifact.identifierToPath(value.client.substring(1, value.client.length - 1)));
+      } else if (value.client.startsWith("'")){  // hash
+        argValues[key] = value.client.substring(1, value.client.length - 1);
+      } else if (value.client.startsWith("/")){  // jar resource
+        argValues[key] = p.join(forgeContents.path, value.client.substring(1, value.client.length));
+      } else {
+        print("processor arg type unknown: $key=${value.client}");
+        argValues[key] = value.client;
+      }
+      print("processor arg: $key=${argValues[key]}");
+    });
+
+    for (forge.ProcessorAction processor in profile.processors){
+      String jar = p.join(Locations.dataDirectory, "libraries", MavenArtifact.identifierToPath(processor.jar));
+      String classpath = processor.classpath.map((e) => p.join(Locations.dataDirectory, "libraries", MavenArtifact.identifierToPath(e))).join(":");
+      List<String> args = [];
+      for (String argName in processor.args){
+        argName = argName.replaceFirst("{ROOT}", argValues["ROOT"]!);
+        if (argName.startsWith("{")){
+          String key = argName.substring(1, argName.length - 1);
+          print(key);
+          args.add(argValues[key]!);
+        } else {
+          args.add(argName);
+        }
+      }
+
+      var processorProcessLmao = await Process.start("java", ["-jar", jar, ...args]);
+      print("java ${["-jar", jar, ...args].join(" ")}");
+      await stdout.addStream(processorProcessLmao.stdout);
+    }
   }
 
   Future<RemoteFile?> findInstaller() async {
@@ -80,9 +121,10 @@ class ForgeWrapperInstaller implements MinecraftInstaller {
  @override
   String get launchClassPath => "${vanilla.jarDownloadHelper.classPath}:${downloadHelper.classPath}";
 
+  // todo
   @override
   Future<String> get launchMainClass async {
-    return (await getMetadata())!.mainClass;
+    return "";
   }
 
   @override

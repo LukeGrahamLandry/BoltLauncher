@@ -66,14 +66,14 @@ mixin MavenArtifact {
   String get path => identifierToPath(_identifier);
 
   static String identifierToPath(String identifier){
-    List<String> parts = identifier.split(":");
+    String extension = identifier.contains("@") ? identifier.split("@")[1] : "jar";
+
+    List<String> parts = identifier.split("@")[0].split(":");
     String group = parts[0];
     String path = group.split(".").join("/");
     String name = parts[1];
     String version = parts[2];
-    String extension = identifier.contains("@") ? identifier.split("@")[1] : "jar";
-
-    print([group, name, version, extension]);
+    
 
     if (parts.length == 3){
       return "$path/$name/$version/$name-$version.$extension";
@@ -92,7 +92,6 @@ mixin MavenArtifact {
   }
 
   Future<String> get sha1 async {
-    print(sha1Url);
     var response = await http.get(Uri.parse(sha1Url));
     if (response.statusCode != 200) {
         throw Exception('Failed to load $sha1Url');

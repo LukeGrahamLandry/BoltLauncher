@@ -40,22 +40,3 @@ class VersionList {
   factory VersionList.fromJson(Map<String, dynamic> json) => _$VersionListFromJson(json);
   Map<String, dynamic> toJson() => _$VersionListToJson(this);
 }
-
-
-@JsonSerializable(explicitToJson: true)
-class VersionFiles {
-  List<vanilla.Library> libraries;
-  int formatVersion;
-  String minecraftArguments;
-  String name;
-  String releaseTime;
-  List<Requirement> requires;
-  String uid;
-  String version;
-  String mainClass;
-
-  VersionFiles(this.libraries, this.name, this.formatVersion, this.mainClass, this.minecraftArguments, this.releaseTime, this.requires, this.uid, this.version);
-
-  factory VersionFiles.fromJson(Map<String, dynamic> json) => _$VersionFilesFromJson(json);
-  Map<String, dynamic> toJson() => _$VersionFilesToJson(this);
-}
