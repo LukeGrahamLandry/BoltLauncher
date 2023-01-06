@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:bolt_launcher/bolt_launcher.dart';
 import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart' as vanilla;
 import 'package:bolt_launcher/src/api_models/fabric_metadata.dart' as fabric;
+import 'package:bolt_launcher/src/api_models/prism_metadata.dart' as prism;
 
 part 'cache.g.dart';
 
@@ -53,6 +54,10 @@ class MetadataCache {
 
   static Future<fabric.VersionList> get fabricVersions async {
      return fabric.VersionList.fromJson(await cachedFetchJson("${GlobalOptions.metadataUrls.fabric}/versions", "fabric-versions.json"));
+  }
+
+  static Future<prism.VersionList> get forgeVersions async {
+     return prism.VersionList.fromJson(await cachedFetchJson("${GlobalOptions.metadataUrls.prismLike}/net.minecraftforge/index.json", "forge-versions.json"));
   }
 
   static Future<fabric.VersionList> get quiltVersions async {

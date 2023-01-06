@@ -63,10 +63,12 @@ class DownloadHelper {
         } catch (e){
           // if anything goes wrong, like windows weird permissions stuff. just fall back to old reliable 
           await checkFile.copy(lib.fullPath);
+          // only trust that it will be there next time if its in our directory, otherwise refind it
+          addToManifestCache(lib);
         }
         
         progress.logWellKnown(lib, wellKnownInstall);
-        addToManifestCache(lib);
+        
         return true;
       } 
     }
@@ -156,7 +158,7 @@ class DownloadHelper {
   }
   
   void addToManifestCache(RemoteFile lib) {
-    manifest.jarLibs[lib.path] = lib.sha1;
+    manifest.jarLibs[lib.path!] = lib.sha1;
   }
 
   Iterable<List<RemoteFile>> getChunks() sync* {

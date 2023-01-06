@@ -24,7 +24,6 @@ mixin FabricInstallerSettings {
 class FabricInstaller with FabricInstallerSettings implements MinecraftInstaller {
 	String minecraftVersion;
   String loaderVersion;
-	late PastDownloadManifest manifest;
   late VanillaInstaller vanilla;
   
   late DownloadHelper downloadHelper;

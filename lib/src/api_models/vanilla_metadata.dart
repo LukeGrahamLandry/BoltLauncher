@@ -31,7 +31,7 @@ class VersionList {
 
 @JsonSerializable(explicitToJson: true)
 class Artifact implements RemoteFile {
-  String path;
+  String? path;
   String sha1;
   String url;
   int? size;
@@ -104,7 +104,10 @@ class Library {
     // pre 1.19 only. after its handled by rules
     Map<String, String>? natives;
 
-    Library(this.name, this.downloads, this.rules, this.natives);
+    Library(this.name, this.downloads, this.rules, this.natives) {
+      // for prism like metadata ForgeWrapper
+      downloads.artifact.path ??= MavenArtifact.identifierToPath(name);
+    }
 
     factory Library.fromJson(Map<String, dynamic> json) => _$LibraryFromJson(json);
     Map<String, dynamic> toJson() => _$LibraryToJson(this);

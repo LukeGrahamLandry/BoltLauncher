@@ -4,13 +4,14 @@ import 'package:bolt_launcher/src/install/game/fabric.dart';
 import 'package:bolt_launcher/src/install/game/quilt.dart';
 import 'package:path/path.dart' as p;
 import 'data/locations.dart';
+import 'install/game/forge/install.dart';
 import 'install/game/vanilla.dart';
 
 void testLaunchMinecraft(){
   String versionId = "1.19.3";
   String gameDir = p.join(Locations.dataDirectory, "instances", "test");
   // var installer = QuiltInstaller(versionId, "0.18.1-beta.26");
-  var installer = FabricInstaller(versionId, "0.14.12");
+  var installer = ForgeWrapperInstaller(versionId, "44.1.0");
   launchMinecraft(installer, gameDir);
 }
 
@@ -45,6 +46,14 @@ void launchMinecraft(MinecraftInstaller installer, String gameDir) async {
     "-XstartOnFirstThread",
     "-cp",
     installer.launchClassPath,
+
+    // TODO: move args definition into installer class
+    // start ForgeWrapper
+    "-Dforgewrapper.librariesDir=${p.join(Locations.installDirectory, "libraries")}",
+    "-Dforgewrapper.installer=${(installer as ForgeWrapperInstaller).officialForgeInstaller.fullPath}",
+    "-Dforgewrapper.minecraft=${p.join(Locations.installDirectory, "versions", installer.versionId, "${installer.versionId}.jar")}",
+    // end ForgeWrapper
+
     await installer.launchMainClass,
     "--version",
     installer.versionId, 
@@ -60,6 +69,8 @@ void launchMinecraft(MinecraftInstaller installer, String gameDir) async {
 
   print("Starting Minecraft.");
   var gameProcess = await Process.start("java", arguments, workingDirectory: gameDir);
+  File("command.sh").writeAsString("cd $gameDir && java ${arguments.join(" ")}");
   await stdout.addStream(gameProcess.stdout);
+  await Process.run("chmod", ["-v", "777", "command.sh"]);
   print("Minecraft Ended. Goodbye.");
 }

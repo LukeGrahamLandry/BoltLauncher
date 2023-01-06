@@ -19,7 +19,7 @@ Future<void> downloadFromCurseMaven(String projectId, String fileId, String mods
     downloadUrl = manifest.curseforge[fullId]!;
   } else {
     inCache = false;
-    var dataUrl = "${GlobalOptions.metadataUrls.curseMaven}/$projectId/$fileId";
+    var dataUrl = "${GlobalOptions.metadataUrls.curseMaven}/test/$projectId/$fileId";
     var dataResponse = await http.get(Uri.parse(dataUrl));
     if (dataResponse.statusCode != 200) {
       throw Exception('Failed to load $dataUrl'); 

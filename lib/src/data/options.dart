@@ -45,7 +45,10 @@ class MetaSources {
   String quilt = "https://meta.quiltmc.org/v3";
   String quiltMaven = "https://maven.quiltmc.org/repository/release";
 
-  String curseMaven = "https://www.cursemaven.com/test";
+  String curseMaven = "https://www.cursemaven.com";
+
+  String prismLike = "https://meta.prismlauncher.org/v1";  // https://meta.multimc.org/v1 or https://meta.polymc.org/v1
+  String forgeMaven = "https://maven.minecraftforge.net";  // https://maven.creeperhost.net
 
   String? azureClientId;
 
