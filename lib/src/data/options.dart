@@ -22,12 +22,17 @@ class GlobalOptions {
   // having this off only saves ~70 milliseconds but feels clever. only a problem if they go in and delete the install/assets/objects files without deleting the manifest 
   static bool reConfirmAssetsExistBeforeLaunch = false;  
 
-  static List<String> get wellKnownInstallLocations => defaultWellKnown();
+  static List<String> wellKnownInstallLocations = defaultWellKnown();
 }
 
 // TODO: other operating systems 
 List<String> defaultWellKnown() {
-  return [path.join(Locations.homeDirectory, "Library", "Application Support", "minecraft"), path.join(Locations.homeDirectory, "Documents", "curseforge", "minecraft", "Install")];
+  return [
+    path.join("/Applications", "MultiMC.app", "Data"), 
+    path.join(Locations.homeDirectory, "Library", "Application Support", "PrismLauncher"), 
+    path.join(Locations.homeDirectory, "Library", "Application Support", "minecraft"), 
+    path.join(Locations.homeDirectory, "Documents", "curseforge", "minecraft", "Install")
+  ];
 }
 
 class MetaSources {

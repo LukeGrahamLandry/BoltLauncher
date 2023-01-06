@@ -63,7 +63,7 @@ class DownloadProgressTracker {
     String msg = "Checked $totalFileCount files in ${(endTime! - startTime) / 1000} seconds. ";
     if (knownFileSizes) {
       var cachePercentage = ((1 - (downloadedSize / totalSize)) * 100).toStringAsFixed(1);
-      msg += "Of ${(totalSize/1000000).toStringAsFixed(0)} MB, $cachePercentage% found in cache. ";
+      msg += "Of ${(totalSize/1000000).toStringAsFixed(0)} MB, $cachePercentage% found on disk. ";
     }
     msg +="${(downloadedSize/1000000).toStringAsFixed(0)} MB downloaded.";
     if (errors.isNotEmpty) {
@@ -88,9 +88,10 @@ class DownloadProgressTracker {
 
   void logWellKnown(RemoteFile lib, String wellKnownInstall) {
     processedFileCount++;
-
-    String msg = "($processedFileCount/$totalFileCount files) ${p.join(wellKnownInstall, lib.wellKnownSubFolder, lib.path)}";
+    if (knownFileSizes){
+      processedSize += lib.size!;
+    }
     
-    print(msg);
+    print("($processedFileCount/$totalFileCount files) ${p.join(wellKnownInstall, lib.wellKnownSubFolder, lib.path)}");
   }
 }

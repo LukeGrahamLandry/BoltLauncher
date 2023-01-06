@@ -1,9 +1,15 @@
-import 'dart:io' show File, FileMode;
+import 'dart:ffi';
+import 'dart:io' show File, FileMode, Link;
+import 'dart:typed_data';
 import 'package:bolt_launcher/bolt_launcher.dart';
 import 'package:bolt_launcher/src/install/util/problem.dart';
 import 'package:bolt_launcher/src/install/util/remote_file.dart';
 import 'package:bolt_launcher/src/install/util/progress.dart';
 import 'package:http/http.dart';
+
+import 'dart:convert';
+import 'package:convert/convert.dart';
+import 'package:crypto/crypto.dart';
 
 import '../../data/cache.dart';
 import 'package:path/path.dart' as p;
@@ -82,22 +88,26 @@ class DownloadHelper {
       return false;
     }
 
-    int length = response.contentLength ?? 0;
-    var sink = targetFile.openWrite();
-    Future.doWhile(() async {
-      var received = await targetFile.length();
-      progress.logDownloading(lib, received, length);
-      return received < length;
-    });
+    int totalLength = response.contentLength ?? 0;
+    int progressLength = 0;
+    var fileSink = targetFile.openWrite();
+    var hashOutput = AccumulatorSink<Digest>();
+    var hashInput = sha1.startChunkedConversion(hashOutput);
 
-    await response.stream.pipe(sink);
+    await for (List<int> part in response.stream){
+      hashInput.add(part);
+      fileSink.add(part);
+      progressLength += part.length;
+      progress.logDownloading(lib, progressLength, totalLength);
+    }
 
-    if (GlobalOptions.checkHashesAfterDownload){
-      var digest = sha1.convert(await targetFile.readAsBytes());
-      if (digest.toString() != lib.sha1){
-        progress.logFailed(lib, HashProblem(lib.sha1, digest.toString(), lib.url));
-        return false;
-      }
+    fileSink.close();
+    hashInput.close();
+    var digest = hashOutput.events.single;
+    if (digest.toString() != lib.sha1){
+      targetFile.delete();
+      progress.logFailed(lib, HashProblem(lib.sha1, digest.toString(), lib.url));
+      return false;
     }
 
     addToManifestCache(lib);
@@ -165,7 +175,16 @@ class DownloadHelper {
   
    Future<bool> checkWellKnown(File checkFile, RemoteFile lib) async {
     if (!await checkFile.exists()) return false;
-    var digest = sha1.convert(await checkFile.readAsBytes());
+
+    var hashOutput = AccumulatorSink<Digest>();
+    var hashInput = sha1.startChunkedConversion(hashOutput);
+    var fileReader = checkFile.openRead();
+    await for (List<int> part in fileReader){
+      hashInput.add(part);
+    }
+    hashInput.close();
+    
+    var digest = hashOutput.events.single;
     return digest.toString() == lib.sha1;
   }
 }

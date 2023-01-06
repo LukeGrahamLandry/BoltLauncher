@@ -1,7 +1,8 @@
 
 ## 23.01.05-dev
 
-- copy files from well known install locations (mojang, curseforge) instead of downloading when possible
+- copy files from well known install locations (mojang, curseforge, prism) instead of downloading when possible
+- process files as streams so the whole thing isn't in memory at once
 
 ## 23.01.04-dev
 

@@ -19,16 +19,6 @@ class RemoteFile {
   static bool isCode(RemoteFile lib) => lib.fullPath.endsWith(".jar");
 }
 
-// class LibFileAt extends LibFile {
-//   String? fullDirectory;
-
-//   LibFileAt(String url, String path, String sha1, {this.fullDirectory}) : super(url, path, sha1);
-
-//   String get fullPath {
-//     return p.join(fullDirectory ?? Locations.dataDirectory, path);
-//   }
-// }
-
 class MavenFile implements RemoteFile {
   MavenArtifact artifact;
   String directory;
