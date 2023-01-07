@@ -47,8 +47,8 @@ class VanillaInstaller implements MinecraftInstaller {
 		for (var version in versionData.versions){
         if (version.id == versionId) {
           var libs = vanilla.VersionFiles.fromJson(await cachedFetchJson(version.url, "vanilla-${version.id}.json"));
-          libs.downloads.client.version = versionId;
-          libs.downloads.client.name = "client";
+          libs.downloads!.client.version = versionId;
+          libs.downloads!.client.name = "client";
           return libs;
         }
     }
@@ -59,13 +59,13 @@ class VanillaInstaller implements MinecraftInstaller {
     jarDownloadHelper = DownloadHelper(constructLibraries(data));
     await jarDownloadHelper.downloadAll();
 
-    assetDownloadHelper = AssetsDownloadHelper(await constructAssets(data), data.assetIndex.sha1);
+    assetDownloadHelper = AssetsDownloadHelper(await constructAssets(data), data.assetIndex!.sha1);
     await assetDownloadHelper.downloadAll();
 	}
 
   List<RemoteFile> constructLibraries(vanilla.VersionFiles data) {
-    List<RemoteFile> libraries = [data.downloads.client];
-    libraries.add(RemoteFile(data.assetIndex.url, p.join("assets", "indexes", "$versionId.json"), data.assetIndex.sha1, data.assetIndex.size));
+    List<RemoteFile> libraries = [data.downloads!.client];
+    libraries.add(RemoteFile(data.assetIndex!.url, p.join("assets", "indexes", "$versionId.json"), data.assetIndex!.sha1, data.assetIndex!.size));
 
     for (var lib in data.libraries){
       libraries.addAll(determineDownloadable(lib));

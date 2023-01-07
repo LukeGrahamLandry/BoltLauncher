@@ -35,9 +35,10 @@ class ProcessorAction {
   String jar;
   List<String> classpath;
   List<String> args;
+  List<String>? sides;
   
 
-  ProcessorAction(this.jar, this.classpath, this.args);
+  ProcessorAction(this.jar, this.classpath, this.args, this.sides);
 
   factory ProcessorAction.fromJson(Map<String, dynamic> json) => _$ProcessorActionFromJson(json);
   Map<String, dynamic> toJson() => _$ProcessorActionToJson(this);

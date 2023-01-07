@@ -151,14 +151,26 @@ class MainFiles {
 @JsonSerializable(explicitToJson: true)
 class VersionFiles {
     List<Library> libraries;
-    MainFiles downloads;
+    MainFiles? downloads;
     String mainClass;
-    RemoteAssetIndex assetIndex;
+    RemoteAssetIndex? assetIndex;
+    Arguments arguments;
 
-    VersionFiles(this.libraries, this.downloads, this.mainClass, this.assetIndex);
+    VersionFiles(this.libraries, this.downloads, this.mainClass, this.assetIndex, this.arguments);
 
     factory VersionFiles.fromJson(Map<String, dynamic> json) => _$VersionFilesFromJson(json);
     Map<String, dynamic> toJson() => _$VersionFilesToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class Arguments {
+  List<dynamic> jvm;
+  List<dynamic> game;
+
+  Arguments(this.game, this.jvm);
+
+  factory Arguments.fromJson(Map<String, dynamic> json) => _$ArgumentsFromJson(json);
+    Map<String, dynamic> toJson() => _$ArgumentsToJson(this);
 }
 
 @JsonSerializable(explicitToJson: true)

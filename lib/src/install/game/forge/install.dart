@@ -7,11 +7,12 @@ import 'package:bolt_launcher/src/install/util/downloader.dart';
 import 'package:bolt_launcher/src/install/util/problem.dart';
 import 'package:bolt_launcher/src/api_models/prism_metadata.dart' as prism;
 import 'package:bolt_launcher/src/api_models/forge_metadata.dart' as forge;
+import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart' as v;
 import 'package:bolt_launcher/src/install/util/remote_file.dart';
 import 'package:path/path.dart' as p;
 import 'package:archive/archive_io.dart';
 
-class ForgeWrapperInstaller implements MinecraftInstaller {	
+class ForgeInstaller implements MinecraftInstaller {	
   String minecraftVersion;
   String loaderVersion;
   late VanillaInstaller vanilla;
@@ -20,7 +21,9 @@ class ForgeWrapperInstaller implements MinecraftInstaller {
 
   late RemoteFile officialForgeInstaller;
 
-  ForgeWrapperInstaller(this.minecraftVersion, this.loaderVersion) {
+  var forgeContents;
+
+  ForgeInstaller(this.minecraftVersion, this.loaderVersion) {
     vanilla = VanillaInstaller(minecraftVersion);
   }
   
@@ -34,18 +37,19 @@ class ForgeWrapperInstaller implements MinecraftInstaller {
     await downloadHelper.downloadAll();
 
     File forgeJar = File(officialForgeInstaller.fullPath);
-    Directory forgeContents = Directory(p.join(forgeJar.parent.path, "$loaderVersion-installer-contents"));
+    forgeContents = Directory(p.join(forgeJar.parent.path, "$loaderVersion-installer-contents"));
     var zipped = ZipDecoder().decodeBytes(await forgeJar.readAsBytes());
 
     for (var file in zipped){
       final filename = '${forgeContents.path}/${file.name}';
       if (file.isFile) {
+        // not actually running their installer so i don't care about the code
+        if (filename.endsWith(".class")) continue;
+
         var outFile = File(filename);
         outFile = await outFile.create(recursive: true);
         await outFile.writeAsBytes(file.content);
-      } else {
-        await Directory(filename).create(recursive: true);
-      }
+      } 
     }
 
     forge.InstallProfile profile = forge.InstallProfile.fromJson(json.decode(File(p.join(forgeContents.path, "install_profile.json")).readAsStringSync()));
@@ -61,9 +65,10 @@ class ForgeWrapperInstaller implements MinecraftInstaller {
       "MINECRAFT_JAR": p.join(Locations.dataDirectory, "versions", "1.19.3", "1.19.3.jar"),  // TODO
       "SIDE": "CLIENT"
     };
+
     profile.data.forEach((key, value) {
       if (value.client.startsWith("[")){  // maven
-        argValues[key] = p.join(Locations.dataDirectory, "libraries", MavenArtifact.identifierToPath(value.client.substring(1, value.client.length - 1)));
+        argValues[key] = p.join(Locations.installDirectory, "libraries", MavenArtifact.identifierToPath(value.client.substring(1, value.client.length - 1)));
       } else if (value.client.startsWith("'")){  // hash
         argValues[key] = value.client.substring(1, value.client.length - 1);
       } else if (value.client.startsWith("/")){  // jar resource
@@ -76,8 +81,16 @@ class ForgeWrapperInstaller implements MinecraftInstaller {
     });
 
     for (forge.ProcessorAction processor in profile.processors){
-      String jar = p.join(Locations.dataDirectory, "libraries", MavenArtifact.identifierToPath(processor.jar));
-      String classpath = processor.classpath.map((e) => p.join(Locations.dataDirectory, "libraries", MavenArtifact.identifierToPath(e))).join(":");
+      if (processor.sides != null && !processor.sides!.contains("client")){
+        print("ProcessorAction skip ${processor.jar}");
+        continue;
+      } 
+
+      print("ProcessorAction start ${processor.jar}");
+
+      String jar = p.join(Locations.installDirectory, "libraries", MavenArtifact.identifierToPath(processor.jar));
+      String classpath = processor.classpath.map((e) => p.join(Locations.installDirectory, "libraries", MavenArtifact.identifierToPath(e))).join(":");
+      classpath += ":$jar";
       List<String> args = [];
       for (String argName in processor.args){
         argName = argName.replaceFirst("{ROOT}", argValues["ROOT"]!);
@@ -90,10 +103,33 @@ class ForgeWrapperInstaller implements MinecraftInstaller {
         }
       }
 
-      var processorProcessLmao = await Process.start("java", ["-jar", jar, ...args]);
-      print("java ${["-jar", jar, ...args].join(" ")}");
+      // have to specify the classpath but -jar ignores that param
+      String mainClass = "";
+      var zipped = ZipDecoder().decodeBytes(await File(jar).readAsBytes());
+      var manifestFile = zipped.findFile("META-INF/MANIFEST.MF");
+      await File("temp").writeAsBytes(manifestFile!.content);
+      for (String line in File("temp").readAsLinesSync()){
+        if (line.startsWith("Main-Class: ")){
+          mainClass = line.replaceFirst("Main-Class: ", "").trim();
+          print("$jar -> $mainClass");
+          break;
+        }
+      }
+
+      var processorProcessLmao = await Process.start("java", ["-cp", classpath, mainClass, ...args]);
+      print("java ${["-cp", classpath, mainClass, ...args].join(" ")}");
       await stdout.addStream(processorProcessLmao.stdout);
     }
+
+    // now need to download the libraries forge needs to actually launch the game
+    v.VersionFiles extraFiles = v.VersionFiles.fromJson(json.decode(File(p.join(forgeContents.path, "version.json")).readAsStringSync()));
+    List<RemoteFile> libs = List.of(extraFiles.libraries.map((e) => e.downloads.artifact));
+    downloadHelper = DownloadHelper(libs);
+    await downloadHelper.downloadAll();
+
+    // now if i just pass to the normal launch code with their main class i get
+    // Caused by: java.lang.reflect.InaccessibleObjectException: Unable to make field static final java.lang.invoke.MethodHandles$Lookup java.lang.invoke.MethodHandles$Lookup.IMPL_LOOKUP accessible: module java.base does not "opens java.lang.invoke" to unnamed module @1f508f09
+    // have to do their command line arguments stuff
   }
 
   Future<RemoteFile?> findInstaller() async {
@@ -124,7 +160,7 @@ class ForgeWrapperInstaller implements MinecraftInstaller {
   // todo
   @override
   Future<String> get launchMainClass async {
-    return "";
+    return "cpw.mods.bootstraplauncher.BootstrapLauncher";
   }
 
   @override
