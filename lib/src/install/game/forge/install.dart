@@ -62,9 +62,13 @@ class ForgeInstaller implements MinecraftInstaller {
     Map<String, String> argValues = {
       "ROOT": p.join(Locations.dataDirectory),
       "INSTALLER": officialForgeInstaller.fullPath,
-      "MINECRAFT_JAR": p.join(Locations.dataDirectory, "versions", "1.19.3", "1.19.3.jar"),  // TODO
-      "SIDE": "CLIENT"
+      "MINECRAFT_JAR": p.join(Locations.installDirectory, "versions", "1.19.3", "1.19.3.jar"),  // TODO
+      "SIDE": "client"  // uppercase caused 'Missing download info for CLIENT mappings'
     };
+
+
+    // de.oceanlabs.mcp:mcp_config:1.19.3-20221207.122022@zip
+    // https://maven.minecraftforge.net/de/oceanlabs/mcp/mcp_config/1.19.3-20221207.122022/mcp_config-1.19.3-20221207.122022.zip
 
     profile.data.forEach((key, value) {
       if (value.client.startsWith("[")){  // maven
@@ -80,13 +84,13 @@ class ForgeInstaller implements MinecraftInstaller {
       print("processor arg: $key=${argValues[key]}");
     });
 
+    print(argValues);
+
     for (forge.ProcessorAction processor in profile.processors){
       if (processor.sides != null && !processor.sides!.contains("client")){
         print("ProcessorAction skip ${processor.jar}");
         continue;
       } 
-
-      print("ProcessorAction start ${processor.jar}");
 
       String jar = p.join(Locations.installDirectory, "libraries", MavenArtifact.identifierToPath(processor.jar));
       String classpath = processor.classpath.map((e) => p.join(Locations.installDirectory, "libraries", MavenArtifact.identifierToPath(e))).join(":");
@@ -98,9 +102,11 @@ class ForgeInstaller implements MinecraftInstaller {
           String key = argName.substring(1, argName.length - 1);
           print(key);
           args.add(argValues[key]!);
+        } else if (argName.startsWith("[")){
+          args.add(p.join(Locations.installDirectory, "libraries", MavenArtifact.identifierToPath(argName.substring(1, argName.length - 1))));
         } else {
           args.add(argName);
-        }
+        } 
       }
 
       // have to specify the classpath but -jar ignores that param
@@ -116,9 +122,14 @@ class ForgeInstaller implements MinecraftInstaller {
         }
       }
 
-      var processorProcessLmao = await Process.start("java", ["-cp", classpath, mainClass, ...args]);
       print("java ${["-cp", classpath, mainClass, ...args].join(" ")}");
+
+      print("ProcessorAction start ${processor.jar}");
+
+      var processorProcessLmao = await Process.start("java", ["-cp", classpath, mainClass, ...args]);
+      
       await stdout.addStream(processorProcessLmao.stdout);
+      await stdout.addStream(processorProcessLmao.stderr);
     }
 
     // now need to download the libraries forge needs to actually launch the game

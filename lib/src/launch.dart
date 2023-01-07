@@ -49,13 +49,19 @@ void launchMinecraft(MinecraftInstaller installer, String gameDir) async {
   List<String> jvm = [];
   extraFiles.arguments.jvm.forEach((element) {
     if (element is String){
-      jvm.add(element.replaceAll("\${library_directory}", p.join(Locations.installDirectory, "libraries")).replaceAll("\${classpath_separator}", ":"));
+      jvm.add(element
+                      .replaceAll("\${library_directory}", p.join(Locations.installDirectory, "libraries"))
+                      .replaceAll("\${classpath_separator}", ":")
+                      .replaceAll("\${version_name}", "1.19.3")); 
     }
   });
   extraFiles.arguments.game.removeWhere((element) => element is! String);
 
   List<String> arguments = [
     "-XstartOnFirstThread",
+    // forge: Exception in thread "main" java.lang.module.ResolutionException: Module minecraft contains package com.mojang.blaze3d.systems, module _1._19._3 exports package com.mojang.blaze3d.systems to minecraft
+    // tried to fix by removing classpath which did fix but caused Exception in thread "main" java.lang.StringIndexOutOfBoundsException: begin 0, end -3, length 1 ... at cpw.mods.bootstraplauncher@1.1.2/cpw.mods.bootstraplauncher.BootstrapLauncher.main(BootstrapLauncher.java:84)
+    // real solution was put this back and replace ${version_name} in jvm args 
     "-cp",
     installer.launchClassPath,
     ...jvm,
