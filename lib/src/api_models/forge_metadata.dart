@@ -10,7 +10,7 @@ class InstallProfile {
   String json;
   String minecraft;
   Map<String, DistPair> data;
-  List<ProcessorAction> processors;
+  List<Processor> processors;
   List<Library> libraries;
 
   InstallProfile(this.spec, this.version, this.json, this.minecraft, this.data, this.processors, this.libraries);
@@ -31,15 +31,15 @@ class DistPair {
 }
 
 @JsonSerializable(explicitToJson: true)
-class ProcessorAction {
+class Processor {
   String jar;
   List<String> classpath;
   List<String> args;
   List<String>? sides;
   
 
-  ProcessorAction(this.jar, this.classpath, this.args, this.sides);
+  Processor(this.jar, this.classpath, this.args, this.sides);
 
-  factory ProcessorAction.fromJson(Map<String, dynamic> json) => _$ProcessorActionFromJson(json);
-  Map<String, dynamic> toJson() => _$ProcessorActionToJson(this);
+  factory Processor.fromJson(Map<String, dynamic> json) => _$ProcessorFromJson(json);
+  Map<String, dynamic> toJson() => _$ProcessorToJson(this);
 }
