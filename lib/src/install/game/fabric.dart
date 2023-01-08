@@ -21,28 +21,27 @@ mixin FabricInstallerSettings {
   String loaderName = "Fabric";
 }
 
-class FabricInstaller with FabricInstallerSettings implements MinecraftInstaller {
-	String minecraftVersion;
-  String loaderVersion;
+class FabricInstaller extends GameInstaller with FabricInstallerSettings {
   late VanillaInstaller vanilla;
   
   late DownloadHelper downloadHelper;
 
-  FabricInstaller(this.minecraftVersion, this.loaderVersion) {
+  FabricInstaller(String minecraftVersion, String loaderVersion) : super(minecraftVersion, loaderVersion) {
     vanilla = VanillaInstaller(minecraftVersion);
   }
 
   @override
-  Future<void> install() async {
+  Future<bool> install() async {
     await vanilla.install();
 
     var metadata = await getMetadata();
     if (metadata == null){
 			print("$loaderName $minecraftVersion $loaderVersion not found.");
-			return;
+			return false;
 		}
 
     await download(metadata);
+    return true;
   }
 
   Future<void> download(fabric.VersionFiles data) async {
@@ -79,23 +78,9 @@ class FabricInstaller with FabricInstallerSettings implements MinecraftInstaller
 
 		for (var version in versionData.loader){
         if (version.version == loaderVersion) {
-          return versionFilesMetadata(minecraftVersion, loaderVersion);
+          return versionFilesMetadata(minecraftVersion, loaderVersion!);
         }
     }
     return null;
   }
-  
-  @override
-  String get launchClassPath => "${downloadHelper.classPath}:${vanilla.jarDownloadHelper.classPath}";
-
-  @override
-  Future<String> get launchMainClass async {
-    return (await getMetadata())!.launcherMeta.mainClass.client;
-  }
-
-  @override
-  String get versionId => vanilla.versionId;
-
-  @override
-  List<Problem> get errors => downloadHelper.errors + vanilla.jarDownloadHelper.errors;
 }

@@ -1,6 +1,6 @@
 import 'package:bolt_launcher/src/data/cache.dart';
 import 'package:bolt_launcher/src/install/mods/curseforge.dart';
-import 'package:bolt_launcher/src/launch.dart';
+import 'package:bolt_launcher/src/launch/forge.dart';
 
 import 'commands/clear.dart';
 import 'commands/help.dart';
@@ -15,7 +15,7 @@ Future<void> main(List<String> arguments) async {
     String program = arguments.isEmpty ? "help" : arguments[0];
 
     if (program == "launch") {
-      testLaunchMinecraft();
+      await testLaunchMinecraft();
       return;
     }
 
@@ -40,4 +40,29 @@ Future<void> main(List<String> arguments) async {
 
     if (program == "clear" && arguments[1] == "confirm") clearCommand(arguments);
     if (program == "install") installCommand(arguments);
+}
+
+Future<void> testLaunchMinecraft() async {
+  String versionId = "1.19.3";
+  String loaderVersion = "44.1.0";
+  String gameDir = p.join(Locations.dataDirectory, "instances", "test");
+  // var installer = QuiltInstaller(versionId, "0.18.1-beta.26");
+  
+  Directory(gameDir).createSync(recursive: true);
+
+  var logs = File("log.txt");
+  var launcher = await ForgeLauncher.create(versionId, loaderVersion, gameDir);
+  var gameProcess = await launcher.launch("java");
+  gameProcess.stdout.listen((data) {
+    stdout.add(data);
+    // logs.writeAsBytesSync(data, mode: FileMode.append);
+  });
+  gameProcess.stderr.listen((data) {
+    stdout.add(data);
+    // logs.writeAsBytesSync(data, mode: FileMode.append);
+  });
+
+  int result = await gameProcess.exitCode;
+  await Process.run("chmod", ["-v", "777", "command.sh"]);
+  print("Minecraft Ended (exit code = $result). Goodbye.");
 }

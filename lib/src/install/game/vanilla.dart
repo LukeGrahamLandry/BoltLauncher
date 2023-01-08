@@ -14,35 +14,33 @@ void installVanilla(String versionId) async {
   await VanillaInstaller(versionId).install();
 }
 
-abstract class MinecraftInstaller {
-  String get versionId;
-  String get launchClassPath;
-  Future<String> get launchMainClass;
-  List<Problem> get errors;
-  Future<void> install();
+abstract class GameInstaller {
+  String minecraftVersion;
+  String? loaderVersion;
+  GameInstaller(this.minecraftVersion, this.loaderVersion);
+
+  Future<bool> install();
 }
 
-class VanillaInstaller implements MinecraftInstaller {
-  @override
-	String versionId;
-  bool hashChecking;
+class VanillaInstaller extends GameInstaller {
   late DownloadHelper jarDownloadHelper;
   late DownloadHelper assetDownloadHelper;
 
-	VanillaInstaller(this.versionId, {this.hashChecking=true});
+	VanillaInstaller(String versionId) : super(versionId, null);
 
   @override
-	Future<void> install() async {
-		var metadata = await getMetadata();
+	Future<bool> install() async {
+		var metadata = await getMetadata(minecraftVersion);
     if (metadata == null){
-			print("Minecraft version $versionId was not found. ");
-			return;
+			print("Minecraft version $minecraftVersion was not found. ");
+			return false;
 		}
 
 		await download(metadata);
+    return true;
 	}
 
-  Future<vanilla.VersionFiles?> getMetadata() async {
+  static Future<vanilla.VersionFiles?> getMetadata(String versionId) async {
     vanilla.VersionList versionData = await MetadataCache.vanillaVersions;
 		for (var version in versionData.versions){
         if (version.id == versionId) {
@@ -65,7 +63,7 @@ class VanillaInstaller implements MinecraftInstaller {
 
   List<RemoteFile> constructLibraries(vanilla.VersionFiles data) {
     List<RemoteFile> libraries = [data.downloads!.client];
-    libraries.add(RemoteFile(data.assetIndex!.url, p.join("assets", "indexes", "$versionId.json"), data.assetIndex!.sha1, data.assetIndex!.size));
+    libraries.add(RemoteFile(data.assetIndex!.url, p.join("assets", "indexes", "$minecraftVersion.json"), data.assetIndex!.sha1, data.assetIndex!.size));
 
     for (var lib in data.libraries){
       libraries.addAll(determineDownloadable(lib));
@@ -74,7 +72,7 @@ class VanillaInstaller implements MinecraftInstaller {
     return libraries;
   }
 
-  List<RemoteFile> determineDownloadable(vanilla.Library lib){
+  static List<RemoteFile> determineDownloadable(vanilla.Library lib){
     List<RemoteFile> toDownload = [];
 
     if (ruleMatches(lib.rules)) {
@@ -97,13 +95,13 @@ class VanillaInstaller implements MinecraftInstaller {
   }
 
   Future<List<RemoteFile>> constructAssets(vanilla.VersionFiles data) async {
-    File indexFile = File(p.join(Locations.installDirectory, "assets", "indexes", "$versionId.json"));
+    File indexFile = File(p.join(Locations.installDirectory, "assets", "indexes", "$minecraftVersion.json"));
     AssetIndexHolder indexData = AssetIndexHolder.fromJson(json.decode(await indexFile.readAsString()));
     List<RemoteFile> libs = List.of(indexData.objects.values);
     return libs;
   }
 
-  bool ruleMatches(List<vanilla.Rule>? rules){
+  static bool ruleMatches(List<vanilla.Rule>? rules){
     if (rules == null) return true;
 
     for (var rule in rules){
@@ -117,14 +115,6 @@ class VanillaInstaller implements MinecraftInstaller {
     return true;
   }
 
-  @override
-  String get launchClassPath => jarDownloadHelper.classPath;
-
-  @override
-  Future<String> get launchMainClass async {
-    return (await getMetadata())!.mainClass;
-  }
-  
   @override
   List<Problem> get errors => [...jarDownloadHelper.errors, ...assetDownloadHelper.errors];
 }

@@ -40,9 +40,9 @@ void installCommand(List<String> arguments) async {
 }
 
 Future<void> installMinecraft(String loader, String version, bool hashChecking) async {
-  MinecraftInstaller installer;
+  GameInstaller installer;
   if (loader == "vanilla") {
-    installer = VanillaInstaller(version, hashChecking: hashChecking);
+    installer = VanillaInstaller(version);
   }
   else if (loader == "fabric"){
     installer = FabricInstaller(version, "0.14.12");
@@ -55,15 +55,6 @@ Future<void> installMinecraft(String loader, String version, bool hashChecking) 
   }
 
   await installer.install();
-  print("");
-    if (installer.errors.isEmpty){
-      print("Minecraft $loader $version has been installed.");
-    } else {
-      print("=== FAILED WITH ${installer.errors.length} ERRORS ===");
-      installer.errors.forEach((element) {
-        print(element.message);
-      });
-    }
 }
 
 Future<void> createEmptyProfile(String name, String loader, String version) async {

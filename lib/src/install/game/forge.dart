@@ -5,7 +5,6 @@ import 'package:bolt_launcher/bolt_launcher.dart';
 import 'package:bolt_launcher/src/data/cache.dart';
 import 'package:bolt_launcher/src/install/util/downloader.dart';
 import 'package:bolt_launcher/src/install/util/problem.dart';
-import 'package:bolt_launcher/src/api_models/prism_metadata.dart' as prism;
 import 'package:bolt_launcher/src/api_models/forge_metadata.dart' as forge;
 import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart' as v;
 import 'package:bolt_launcher/src/install/util/remote_file.dart';
@@ -13,9 +12,7 @@ import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as p;
 import 'package:archive/archive_io.dart';
 
-class ForgeInstaller implements MinecraftInstaller {
-  String minecraftVersion;
-  String loaderVersion;
+class ForgeInstaller extends GameInstaller {
   late VanillaInstaller vanilla;
 
   late DownloadHelper downloadHelper;
@@ -23,21 +20,22 @@ class ForgeInstaller implements MinecraftInstaller {
   late RemoteFile officialForgeInstaller;
   late List<RemoteFile> gameLibs;
 
-  ForgeInstaller(this.minecraftVersion, this.loaderVersion) {
+  ForgeInstaller(String minecraftVersion, String loaderVersion) : super(minecraftVersion, loaderVersion){
     vanilla = VanillaInstaller(minecraftVersion);
   }
 
   @override
-  Future<void> install() async {
+  Future<bool> install() async {
     await vanilla.install();
-
+    
     bool foundInstaller = await extractInstallerMetadata();
     if (!foundInstaller){
       print("Could not find the installer jar for Forge $loaderVersion");
-      return;
+      return false;
     }
     await downloadLibraries();
-    await ForgeProcessors(minecraftVersion, loaderVersion).runAll();
+    await ForgeProcessors(minecraftVersion, loaderVersion!).runAll();
+    return true;
   }
 
   /// download the official forge installer jar file and extract the metadata json files. 
@@ -64,21 +62,6 @@ class ForgeInstaller implements MinecraftInstaller {
     downloadHelper = DownloadHelper(processorLibs + gameLibs);
     await downloadHelper.downloadAll();
   }
-
-  @override
-  String get launchClassPath => "${vanilla.jarDownloadHelper.classPath}:${DownloadHelper.toClasspath(gameLibs)}";
-
-  @override
-  Future<String> get launchMainClass async {
-    v.VersionFiles launchData = v.VersionFiles.fromJson(json.decode(File(p.join(Locations.metadataCacheDirectory, "forge-$loaderVersion-version.json")).readAsStringSync()));
-    return launchData.mainClass;
-  }
-
-  @override
-  String get versionId => vanilla.versionId;
-
-  @override
-  List<Problem> get errors => downloadHelper.errors + vanilla.jarDownloadHelper.errors;
 }
 
 class ForgeProcessors {
