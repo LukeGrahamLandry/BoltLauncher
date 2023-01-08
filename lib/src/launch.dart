@@ -5,7 +5,7 @@ import 'package:bolt_launcher/src/install/game/fabric.dart';
 import 'package:bolt_launcher/src/install/game/quilt.dart';
 import 'package:path/path.dart' as p;
 import 'data/locations.dart';
-import 'install/game/forge/install.dart';
+import 'install/game/forge.dart';
 import 'install/game/vanilla.dart';
 import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart' as vanilla;
 
@@ -44,7 +44,7 @@ void launchMinecraft(MinecraftInstaller installer, String gameDir) async {
     "\${classpath}": installer.launchClassPath,
   };
 
-  vanilla.VersionFiles extraFiles = vanilla.VersionFiles.fromJson(json.decode(File(p.join((installer as ForgeInstaller).forgeContents.path, "version.json")).readAsStringSync()));
+  vanilla.VersionFiles extraFiles = vanilla.VersionFiles.fromJson(json.decode(File(p.join(Locations.metadataCacheDirectory, "forge-44.1.0-version.json")).readAsStringSync()));
 
   List<String> jvm = [];
   extraFiles.arguments.jvm.forEach((element) {

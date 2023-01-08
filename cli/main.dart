@@ -14,7 +14,10 @@ import 'commands/install.dart';
 Future<void> main(List<String> arguments) async {
     String program = arguments.isEmpty ? "help" : arguments[0];
 
-    if (program == "launch") testLaunchMinecraft();
+    if (program == "launch") {
+      testLaunchMinecraft();
+      return;
+    }
 
     if (program == "list"){
         (await getProfiles()).forEach((key, value) {

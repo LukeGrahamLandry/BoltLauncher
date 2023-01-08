@@ -176,6 +176,10 @@ class DownloadHelper {
   }
 
   String get classPath {
+    return toClasspath(this.toDownload);
+  }
+
+  static String toClasspath(List<RemoteFile> toDownload){
     List<String> files = [];
     for (var lib in toDownload){
       if (lib.fullPath.endsWith(".jar")){
