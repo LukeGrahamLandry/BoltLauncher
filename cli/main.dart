@@ -1,4 +1,6 @@
+import 'package:bolt_launcher/src/api_models/java_metadata.dart';
 import 'package:bolt_launcher/src/data/cache.dart';
+import 'package:bolt_launcher/src/install/java.dart';
 import 'package:bolt_launcher/src/install/mods/curseforge.dart';
 import 'package:bolt_launcher/src/launch/forge.dart';
 
@@ -13,6 +15,11 @@ import 'commands/install.dart';
 
 Future<void> main(List<String> arguments) async {
     String program = arguments.isEmpty ? "help" : arguments[0];
+
+    List<JavaInfo> foundJava = await JavaFinder.search();
+    foundJava.forEach((element) { 
+      print(element);
+    });
 
     if (program == "launch") {
       await testLaunchMinecraft();
