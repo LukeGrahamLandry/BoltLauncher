@@ -22,6 +22,8 @@ class JavaFinder {
   static List<String> wellKnownJreFolders(){
     List<String> results = [
       path.join(Locations.homeDirectory, "Library", "Java", "JavaVirtualMachines"),
+      path.join("/Library", "Java", "JavaVirtualMachines"),
+      path.join("/Library", "Internet Plug-Ins", "JavaAppletPlugin.plugin"),
       path.join(Locations.homeDirectory, "Documents", "curseforge", "minecraft", "Install", "java"),
       path.join(Locations.homeDirectory, ".gradle", "jdks"),
     ];

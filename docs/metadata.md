@@ -9,8 +9,9 @@ It's like an RCE exploit but on purpose.
 - Some launchers will hardcode the urls to thier chosen meta servers. This becomes a problem if the url is compromised and someone evil can send you whatever code they want to run and players can't change it other than hoping there's an update to the launcher. 
 - Some launchers (MultiMC, PolyMC, PrismLauncher) host the metadata on thier own server and use scripts to update it from the official sources so there's only one master url for players to configure and trust. This gives them options in case there's a problem with an official source. But all it takes is one [developer](https://github.com/PolyMC/PolyMC/commit/ccf282593dcdbe189c99b81b8bc90cb203aed3ee) [doing](https://news.ycombinator.com/item?id=33239211) [something](https://www.reddit.com/r/OutOfTheLoop/comments/y7647y/whats_going_on_with_polymc_being_declared/) [questionable](https://twitter.com/gamingonlinux/status/1582103691762405378) for everyone to panic and tell you to go change your meta url.
 - BoltLauncher lets you configure them to be whatever you prefer. 
+
 So if you decide you don't trust the owner of your meta server anymore, you can just change the url and any mismatched files will be redownloaded automatically. 
-By default I use those from the Official Launcher and each modloader's respective installer. 
+By default I use those from the Official Launcher and each modloader's official installer respectivly. 
 
 ## BoltLauncher Metadata Urls
 
@@ -26,6 +27,8 @@ By default I use those from the Official Launcher and each modloader's respectiv
     - where to fetch the list of quilt versions. response contains urls to library data per version which contains maven repository urls and artifacts. 
 - quiltMaven
     - the maven repository to use for the main quilt-loader artifact.
+- forgeMaven
+	- the maven repositry to use for the forge installer and files it references 
 
 See `lib/src/data/options.dart`
 

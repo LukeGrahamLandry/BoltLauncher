@@ -1,8 +1,16 @@
 
+## 23.01.08-dev
+
+- find existing java installations
+
+## 23.01.06-dev
+
+- install and launch forge
+
 ## 23.01.05-dev
 
-- copy files from well known install locations (mojang, curseforge, prism) instead of downloading when possible
 - process files as streams so the whole thing isn't in memory at once
+- symlink to files in well known install locations (mojang, curseforge, prism) instead of downloading when possible
 
 ## 23.01.04-dev
 

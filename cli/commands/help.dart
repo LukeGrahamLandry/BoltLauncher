@@ -81,8 +81,6 @@ Usage:
 Arguments: 
   --vanillaVersions
     url. source for the vanilla game files. 
-  --prismLike
-    url. use meta format of MultiMC/PolyMC/PrismLauncher instead of all options above (overrides them if set).
   --curseMaven
     url.
   --curseforgeApi

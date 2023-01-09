@@ -19,5 +19,4 @@ bolt
 
 # dart run build_runner build
 **/*.g.dart
-
-command.sh
+docs/.obsidian
