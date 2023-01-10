@@ -56,7 +56,6 @@ class FabricInstaller extends GameInstaller with FabricInstallerSettings {
 
     print("Loading maven hashes.");
     List<RemoteFile> toDownload = await Future.wait(allLibs.map((lib) => lib.lib));
-
     return toDownload;
   }
 

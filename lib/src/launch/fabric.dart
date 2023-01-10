@@ -3,10 +3,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:bolt_launcher/bolt_launcher.dart';
-import 'package:bolt_launcher/src/install/game/forge.dart';
-import 'package:bolt_launcher/src/install/util/downloader.dart';
-import 'package:bolt_launcher/src/install/util/remote_file.dart';
-import 'package:bolt_launcher/src/launch/vanilla.dart';
+import 'package:bolt_launcher/src/install/game/fabric.dart';
 import 'package:path/path.dart' as p;
 import 'package:bolt_launcher/src/api_models/fabric_metadata.dart' as fabric;
 
@@ -30,7 +27,6 @@ class FabricLauncher extends GameLauncher with FabricInstallerSettings {
     fabricLibs.addAll(metadata.launcherMeta.libraries.client);
     fabricLibs.add(fabric.LibraryLocation(metadata.loader.maven, "$defaultMavenUrl/"));
     String fabricClasspath = fabricLibs.map((e) => p.join(Locations.installDirectory, "libraries", e.path)).join(":");
-
     return "$fabricClasspath:${vanilla.classpath}";
   }
   
@@ -38,7 +34,11 @@ class FabricLauncher extends GameLauncher with FabricInstallerSettings {
   GameInstaller get installer => FabricInstaller(minecraftVersion, loaderVersion!);
   
   @override
-  List<String> get jvmArgs => vanilla.jvmArgs;
+  List<String> get jvmArgs => [
+      "-XstartOnFirstThread",  // macos only?
+      "-cp",
+      classpath
+    ];
   
   @override
   String get mainClass => metadata.launcherMeta.mainClass.client;

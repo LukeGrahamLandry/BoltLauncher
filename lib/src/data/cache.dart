@@ -29,21 +29,21 @@ class PastDownloadManifest {
 	}
 
 	static Future<PastDownloadManifest> open() async {
-    if (locked){
-      throw Exception("Manifest file is locked.");
-    }
+    // if (locked){
+    //   throw Exception("Manifest file is locked.");
+    // }
     locked = true;
     Map<String, dynamic> data = await jsonObjectFile(Locations.manifestFile, PastDownloadManifest.empty());
 		return PastDownloadManifest.fromJson(data);
 	}
 
 	Future<void> close() async {
-		await writeJsonObjectFile(Locations.manifestFile, toJson());
+		// await writeJsonObjectFile(Locations.manifestFile, toJson());
     locked = false;
 	}
 
   quickSave() async {
-    await writeJsonObjectFile(Locations.manifestFile, toJson());
+    // await writeJsonObjectFile(Locations.manifestFile, toJson());
   }
 }
 
@@ -74,10 +74,15 @@ class MetadataCache {
 
     return fabric.VersionList(gameVersions, loaderVersions);
   }
+
+  static Future<Map<String, String>> get forgeRecommendedVersions async {
+    return ((await cachedFetchJson("${GlobalOptions.metadataUrls.forge}/promotions_slim.json", "forge-versions-slim.json"))["promos"] as Map).map((key, value) => MapEntry(key, value as String));
+  }
 }
 
 Future<Map<String, dynamic>> cachedFetchJson(String url, String filename) async {
-    return jsonDecode(await cachedFetchText(url, filename));
+  String data = await cachedFetchText(url, filename);
+  return jsonDecode(data);
 }
 
 Future<String> cachedFetchText(String url, String filename) async {
@@ -101,7 +106,10 @@ Future<String> cachedFetchText(String url, String filename) async {
       print("Using cached $filename");
     }
 
-    return await file.readAsString();
+    String result = await file.readAsString();
+    // print(url);
+    // print(result);
+    return result;
 }
 
 Future<Map<String, dynamic>> jsonObjectFile(String path, Map<String, dynamic> defaultData) async {

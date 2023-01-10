@@ -28,7 +28,7 @@ class DownloadHelper {
   }
 
   Future<void> downloadAll() async {
-    progress.logStart();
+    progress.start();
     manifest = await PastDownloadManifest.open();
     httpClient = Client();
 
@@ -38,12 +38,12 @@ class DownloadHelper {
     
     httpClient.close();
     await manifest.close();
-    progress.logEnd();
+    progress.end();
   }
   
   Future<bool> downloadLibrary(RemoteFile lib) async {
     if (await isCached(lib)){
-      progress.logCached(lib);
+      progress.cached(lib);
       return true;
     }
 
@@ -67,7 +67,7 @@ class DownloadHelper {
           addToManifestCache(lib);
         }
         
-        progress.logWellKnown(lib, wellKnownInstall);
+        progress.foundWellKnown(lib, wellKnownInstall);
         
         return true;
       } 
@@ -91,13 +91,13 @@ class DownloadHelper {
     }
 
     if (finalProblem != null){
-      progress.logFailed(lib, finalProblem);
+      progress.failed(lib, finalProblem);
       return false;
     } else if (response == null){  // i dont think this is possible without finalProblem being non-null above
-      progress.logFailed(lib, HttpProblem("null response", lib.url));
+      progress.failed(lib, HttpProblem("null response", lib.url));
       return false;
     } else if (response.statusCode != 200){
-      progress.logFailed(lib, HttpProblem("Status code ${response.statusCode}", lib.url));
+      progress.failed(lib, HttpProblem("Status code ${response.statusCode}", lib.url));
       return false;
     }
 
@@ -111,7 +111,7 @@ class DownloadHelper {
       hashInput.add(part);
       fileSink.add(part);
       progressLength += part.length;
-      progress.logDownloading(lib, progressLength, totalLength);
+      progress.downloading(lib, progressLength, totalLength);
     }
 
     fileSink.close();
@@ -119,12 +119,12 @@ class DownloadHelper {
     var digest = hashOutput.events.single;
     if (digest.toString() != lib.sha1){
       targetFile.delete();
-      progress.logFailed(lib, HashProblem(lib.sha1, digest.toString(), lib.url));
+      progress.failed(lib, HashProblem(lib.sha1, digest.toString(), lib.url));
       return false;
     }
 
     addToManifestCache(lib);
-    progress.logDownloaded(lib, await targetFile.length());
+    progress.downloaded(lib, await targetFile.length());
 
     await manifest.quickSave();
 
@@ -145,7 +145,7 @@ class DownloadHelper {
 
     bool matchesManifest = manifestHash == lib.sha1;
     if (!matchesManifest && manifestHash != null){
-      progress.logExpectedHashChanged(lib, manifestHash);
+      progress.expectedHashChanged(lib, manifestHash);
     }
 
     if (GlobalOptions.recomputeHashesBeforeLaunch || manifestHash == null){

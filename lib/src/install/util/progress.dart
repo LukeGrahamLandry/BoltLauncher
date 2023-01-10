@@ -28,17 +28,17 @@ class DownloadProgressTracker {
     }
   }
 
-  void logStart(){
+  void start(){
     startTime = DateTime.now().millisecondsSinceEpoch;
-    print("Checking $totalFileCount files${knownFileSizes? " (${(totalSize/1000000).toStringAsFixed(0)} MB)" : ""}");
+    log("Checking $totalFileCount files${knownFileSizes? " (${(totalSize/1000000).toStringAsFixed(0)} MB)" : ""}");
   }
 
-  void logCached(RemoteFile lib){
+  void cached(RemoteFile lib){
     processedFileCount++;
     if (knownFileSizes) processedSize += lib.size!;
   }
 
-  void logDownloaded(RemoteFile lib, int bytesSize){
+  void downloaded(RemoteFile lib, int bytesSize){
     processedFileCount++;
     
     String msg = "($processedFileCount/$totalFileCount files";
@@ -49,16 +49,16 @@ class DownloadProgressTracker {
     } 
     msg += ") ${lib.url}";
     
-    print(msg);
+    log(msg);
   }
 
-  void logFailed(RemoteFile lib, Problem problem){
-    print(problem.message);
+  void failed(RemoteFile lib, Problem problem){
+    log(problem.message);
     errors.add(problem);
     processedFileCount++;
   }
   
-  void logEnd() {
+  void end() {
     endTime = DateTime.now().millisecondsSinceEpoch;
     String msg = "Checked $totalFileCount files in ${(endTime! - startTime) / 1000} seconds. ";
     if (knownFileSizes) {
@@ -69,29 +69,33 @@ class DownloadProgressTracker {
     if (errors.isNotEmpty) {
       msg += "Download incomplete with ${errors.length} errors.";
     }
-    print(msg);
+    log(msg);
   }
 
-  void logExpectedHashChanged(RemoteFile lib, String manifestHash) {
+  void expectedHashChanged(RemoteFile lib, String manifestHash) {
     if (RemoteFile.isCode(lib)){
-      print("WARNING");
-      print("Desired hash of ${lib.path} changed since last download.");
-      print("Was $manifestHash, now ${lib.sha1}");
-      print("File will be re-downloaded but this is very concerning.");
-      print("=======");
+      log("WARNING");
+      log("Desired hash of ${lib.path} changed since last download.");
+      log("Was $manifestHash, now ${lib.sha1}");
+      log("File will be re-downloaded but this is very concerning.");
+      log("=======");
     }
   }
 
-  void logDownloading(RemoteFile lib, int receivedBytes, int totalBytes) {
+  void downloading(RemoteFile lib, int receivedBytes, int totalBytes) {
     // show incremental download in gui
   }
 
-  void logWellKnown(RemoteFile lib, String wellKnownInstall) {
+  void foundWellKnown(RemoteFile lib, String wellKnownInstall) {
     processedFileCount++;
     if (knownFileSizes){
       processedSize += lib.size!;
     }
     
-    print("($processedFileCount/$totalFileCount files) ${p.join(wellKnownInstall, lib.wellKnownSubFolder, lib.path)}");
+    log("($processedFileCount/$totalFileCount files) ${p.join(wellKnownInstall, lib.wellKnownSubFolder, lib.path)}");
+  }
+  
+  void log(String msg) {
+    print(msg);
   }
 }

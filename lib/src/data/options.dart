@@ -9,7 +9,7 @@ import 'dart:convert';
 // maybe split commands 'bolt meta trust --key value' and 'bolt meta misc --key value'
 
 class GlobalOptions {
-  static bool recomputeHashesBeforeLaunch = false;
+  static bool recomputeHashesBeforeLaunch = true;
   static bool checkHashesAfterDownload = true;
   // static bool checkSignaturesOnDownload = true;  // TODO
   // static String pgpCommand = "gpg"
@@ -48,6 +48,7 @@ class MetaSources {
   String curseMaven = "https://www.cursemaven.com";
 
   String prismLike = "https://meta.prismlauncher.org/v1";  // https://meta.multimc.org/v1 or https://meta.polymc.org/v1
+  String forge = "https://files.minecraftforge.net/net/minecraftforge/forge";
   String forgeMaven = "https://maven.minecraftforge.net";  // https://maven.creeperhost.net
 
   String? azureClientId;

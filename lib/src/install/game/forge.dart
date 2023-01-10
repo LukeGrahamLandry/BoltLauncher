@@ -97,7 +97,7 @@ class ForgeProcessors {
     Map<String, String> argValues = {
       "ROOT": p.join(Locations.dataDirectory),
       "INSTALLER": officialInstallerJar,
-      "MINECRAFT_JAR": p.join(Locations.installDirectory, "versions", "1.19.3", "1.19.3.jar"),
+      "MINECRAFT_JAR": p.join(Locations.installDirectory, "versions", minecraftVersion, "$minecraftVersion.jar"),
       "SIDE": "client"
     };
 

@@ -71,3 +71,8 @@ class JavaFinder {
     }
   }
 }
+
+
+class JavaInstaller {
+  
+}

@@ -54,14 +54,14 @@ class VanillaInstaller extends GameInstaller {
   }
 
 	Future<void> download(vanilla.VersionFiles data) async {
-    jarDownloadHelper = DownloadHelper(constructLibraries(data));
+    jarDownloadHelper = DownloadHelper(constructLibraries(data, minecraftVersion));
     await jarDownloadHelper.downloadAll();
 
     assetDownloadHelper = AssetsDownloadHelper(await constructAssets(data), data.assetIndex!.sha1);
     await assetDownloadHelper.downloadAll();
 	}
 
-  List<RemoteFile> constructLibraries(vanilla.VersionFiles data) {
+  static List<RemoteFile> constructLibraries(vanilla.VersionFiles data, String minecraftVersion) {
     List<RemoteFile> libraries = [data.downloads!.client];
     libraries.add(RemoteFile(data.assetIndex!.url, p.join("assets", "indexes", "$minecraftVersion.json"), data.assetIndex!.sha1, data.assetIndex!.size));
 

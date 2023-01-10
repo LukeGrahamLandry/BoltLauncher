@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:io' show File, Platform, Process;
+import 'dart:io' show Directory, File, Platform, Process;
 import 'package:bolt_launcher/bolt_launcher.dart';
 import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart';
 import 'package:bolt_launcher/src/data/cache.dart';
@@ -34,8 +34,8 @@ abstract class GameLauncher {
   Future<Process> launch(String javaExecutable) async {
     List<String> args = [...jvmArgs, mainClass, ...minecraftArgs];
     String startCommandLogLocation = p.join(gameDirectory, "launch.sh");
-    File(startCommandLogLocation).writeAsString("cd $gameDirectory && $javaExecutable ${args.join(" ")}");
-    await Process.run("chmod", ["-v", "777", startCommandLogLocation]);
+    File(startCommandLogLocation)..create(recursive: true)..writeAsStringSync("cd $gameDirectory && $javaExecutable ${args.join(" ")}");
+    Process.run("chmod", ["-v", "777", startCommandLogLocation]);
     return Process.start(javaExecutable, args, workingDirectory: gameDirectory);
   }
 }
@@ -81,15 +81,7 @@ class VanillaLauncher extends GameLauncher {
   String get mainClass => metadata.mainClass;
 
   @override
-  String get classpath {
-    List<RemoteFile> jars = [];
-
-    for (var lib in metadata.libraries){
-      jars.addAll(VanillaInstaller.determineDownloadable(lib));
-    }
-
-    return DownloadHelper.toClasspath(jars);
-  }
+  String get classpath => DownloadHelper.toClasspath(VanillaInstaller.constructLibraries(metadata, minecraftVersion));
   
   @override
   GameInstaller get installer => VanillaInstaller(minecraftVersion);

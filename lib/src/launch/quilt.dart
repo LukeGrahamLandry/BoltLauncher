@@ -1,5 +1,6 @@
 
 import 'package:bolt_launcher/bolt_launcher.dart';
+import 'package:bolt_launcher/src/install/game/quilt.dart';
 import 'package:bolt_launcher/src/launch/fabric.dart';
 import 'package:bolt_launcher/src/launch/vanilla.dart';
 
@@ -13,4 +14,7 @@ class QuiltLauncher extends FabricLauncher with QuiltInstallerSettings {
     self.vanilla = await VanillaLauncher.create(minecraftVersion, gameDirectory, doInstalledCheck: false);
     return self;
   }
+
+  @override
+  GameInstaller get installer => QuiltInstaller(minecraftVersion, loaderVersion!);
 }

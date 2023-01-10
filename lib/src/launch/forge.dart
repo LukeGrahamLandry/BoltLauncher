@@ -43,7 +43,7 @@ class ForgeLauncher extends GameLauncher {
       if (element is String){
         element = element.replaceAll("\${library_directory}", p.join(Locations.installDirectory, "libraries"));
         element = element.replaceAll("\${classpath_separator}", ":");
-        element = element.replaceAll("\${version_name}", "1.19.3"); 
+        element = element.replaceAll("\${version_name}", minecraftVersion); 
         args.add(element);
       }
     });

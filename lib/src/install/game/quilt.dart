@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io' show File, Platform;
+import 'package:bolt_launcher/src/install/game/fabric.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:bolt_launcher/bolt_launcher.dart';

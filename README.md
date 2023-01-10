@@ -24,7 +24,7 @@ can handle everything behind the scenes and you can focus on providing a great i
 
 ## White Labeling
 
-BoltLauncher is designed to be easily configured to your project's branding. 
+BoltLauncher is designed to be easily configured to your project's branding. See [docs/forking.md](docs/forking.md) for more information. 
 
 ## Developing 
 
@@ -35,6 +35,13 @@ BoltLauncher is designed to be easily configured to your project's branding.
 - Run command line app: `dart run cli/main.dart`
 - Build command line app: `dart compile exe cli/main.dart -o bolt`
     - Use the `--define=AZURE_CLIENT_ID=put_your_azure_client_id_here` option to specify your Microsoft identity platform key. 
+
+### Tests
+
+Output is saved at `DATA_LOCATION/logs/tests/NAME.txt`
+
+- `dart run tests/supported_versions.dart`
+    - installs and launches the game for every supported version in sequence
 
 ## Data Location
 
