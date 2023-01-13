@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:bolt_launcher/bolt_launcher.dart';
+import 'package:bolt_launcher/src/data/cache.dart';
 import 'package:bolt_launcher/src/install/game/forge.dart';
 import 'package:bolt_launcher/src/install/util/downloader.dart';
 import 'package:bolt_launcher/src/install/util/remote_file.dart';
@@ -10,6 +11,7 @@ import 'package:bolt_launcher/src/launch/vanilla.dart';
 import 'package:path/path.dart' as p;
 
 import '../api_models/vanilla_metadata.dart';
+import '../loggers/launch.dart';
 
 class ForgeLauncher extends GameLauncher {
   late VersionFiles metadata;
@@ -19,8 +21,9 @@ class ForgeLauncher extends GameLauncher {
 
   static Future<ForgeLauncher> create(String minecraftVersion, String loaderVersion, String gameDirectory) async {
     ForgeLauncher self = ForgeLauncher._create(minecraftVersion, loaderVersion, gameDirectory);
+    self.logger = LaunchLogger("forge", minecraftVersion, gameDirectory);
     await self.checkInstallation();
-    self.metadata = VersionFiles.fromJson(json.decode(File(p.join(Locations.metadataCacheDirectory, "forge-$loaderVersion-version.json")).readAsStringSync()));
+    self.metadata = await MetadataCache.forgeVersionData(minecraftVersion, loaderVersion);
     self.vanilla = await VanillaLauncher.create(minecraftVersion, gameDirectory, doInstalledCheck: false);
     return self;
   }

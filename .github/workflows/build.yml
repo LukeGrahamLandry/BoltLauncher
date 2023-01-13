@@ -32,7 +32,7 @@ jobs:
       - name: Build CLI
         run: dart compile exe cli/main.dart -v -o build/${{ matrix.output-name }} --define=AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}
       
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.output-name }}
           path: build/${{ matrix.output-name }}

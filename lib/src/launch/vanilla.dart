@@ -5,6 +5,7 @@ import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart';
 import 'package:bolt_launcher/src/data/cache.dart';
 import 'package:bolt_launcher/src/install/util/downloader.dart';
 import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart' as vanilla;
+import 'package:bolt_launcher/src/loggers/launch.dart';
 import 'package:bolt_launcher/src/loggers/problem.dart';
 import 'package:bolt_launcher/src/install/util/remote_file.dart';
 
@@ -15,6 +16,7 @@ abstract class GameLauncher {
   String minecraftVersion;
   String? loaderVersion;
   String gameDirectory;
+  late LaunchLogger logger;
   GameLauncher.create(this.minecraftVersion, this.loaderVersion, this.gameDirectory);
 
   String get classpath;
@@ -24,18 +26,13 @@ abstract class GameLauncher {
   GameInstaller get installer;
 
   Future<void> checkInstallation() async {
-    print("Checking installation...");
-    int startTime = DateTime.now().millisecondsSinceEpoch;
+    installer.logger = logger.installLogger;
     await installer.install();
-    int endTime = DateTime.now().millisecondsSinceEpoch;
-    print("Full installation check finished in ${(endTime - startTime) / 1000} seconds.");
   }
 
   Future<Process> launch(String javaExecutable) async {
     List<String> args = [...jvmArgs, mainClass, ...minecraftArgs];
-    String startCommandLogLocation = p.join(gameDirectory, "launch.sh");
-    File(startCommandLogLocation)..create(recursive: true)..writeAsStringSync("cd $gameDirectory && $javaExecutable ${args.join(" ")}");
-    Process.run("chmod", ["-v", "777", startCommandLogLocation]);
+    logger.start(javaExecutable, args);
     return Process.start(javaExecutable, args, workingDirectory: gameDirectory);
   }
 }
@@ -47,6 +44,7 @@ class VanillaLauncher extends GameLauncher {
 
   static Future<VanillaLauncher> create(String minecraftVersion, String gameDirectory, {bool doInstalledCheck = true}) async {
     VanillaLauncher self = VanillaLauncher._create(minecraftVersion, gameDirectory);
+    self.logger = LaunchLogger("vanilla", minecraftVersion, gameDirectory);
     if (doInstalledCheck) await self.checkInstallation();
     self.metadata = (await VanillaInstaller.getMetadata(minecraftVersion))!;
     return self;

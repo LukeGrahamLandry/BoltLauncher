@@ -12,7 +12,13 @@ class InstallLogger {
   late int startTime;
   late int endTime;
 
-  InstallLogger(this.modLoader, this.minecraftVersion, {this.loaderVersion = "0"});
+  InstallLogger? vanillaTracker;
+
+  InstallLogger(this.modLoader, this.minecraftVersion, {this.loaderVersion = "0"}){
+    if (modLoader != "vanilla"){
+      vanillaTracker = InstallLogger("vanilla", minecraftVersion);
+    }
+  }
 
   void start(){
     log("Checking installation...");
@@ -46,6 +52,10 @@ class InstallLogger {
 
   void log(String msg){
     print(msg);
+  }
+
+  void loadMavenHashes(int length) {
+    log("Start loading $length maven hashes");
   }
 }
 

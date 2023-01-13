@@ -6,6 +6,7 @@ import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart';
 import 'package:bolt_launcher/src/data/cache.dart';
 import 'package:bolt_launcher/src/install/util/downloader.dart';
 import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart' as vanilla;
+import 'package:bolt_launcher/src/loggers/install.dart';
 import 'package:bolt_launcher/src/loggers/problem.dart';
 import 'package:bolt_launcher/src/install/util/remote_file.dart';
 
@@ -18,26 +19,36 @@ void installVanilla(String versionId) async {
 abstract class GameInstaller {
   String minecraftVersion;
   String? loaderVersion;
+  late InstallLogger logger;
   GameInstaller(this.minecraftVersion, this.loaderVersion);
 
   Future<bool> install();
+
+  Future<bool> installVanilla() async {
+    VanillaInstaller vanillaInstaller = VanillaInstaller(minecraftVersion);
+    vanillaInstaller.logger = logger.vanillaTracker!;
+    return await vanillaInstaller.install();
+  }
 }
 
 class VanillaInstaller extends GameInstaller {
-  late DownloadHelper jarDownloadHelper;
-  late DownloadHelper assetDownloadHelper;
-
-	VanillaInstaller(String versionId) : super(versionId, null);
+	VanillaInstaller(String versionId) : super(versionId, null){
+    logger = InstallLogger("vanilla", minecraftVersion);
+  }
 
   @override
 	Future<bool> install() async {
+    logger.start();
+
 		var metadata = await getMetadata(minecraftVersion);
     if (metadata == null){
-			print("Minecraft version $minecraftVersion was not found. ");
+      logger.failed(VersionProblem(minecraftVersion));
 			return false;
 		}
 
 		await download(metadata);
+
+    logger.end();
     return true;
 	}
 
@@ -45,7 +56,7 @@ class VanillaInstaller extends GameInstaller {
     vanilla.VersionList versionData = await MetadataCache.vanillaVersions;
 		for (var version in versionData.versions){
         if (version.id == versionId) {
-          var libs = vanilla.VersionFiles.fromJson(await cachedFetchJson(version.url, "vanilla-${version.id}.json"));
+          var libs = vanilla.VersionFiles.fromJson(await cachedFetchJson(version.url, "vanilla/${version.id}.json"));
           libs.downloads!.client.version = versionId;
           libs.downloads!.client.name = "client";
           return libs;
@@ -55,10 +66,12 @@ class VanillaInstaller extends GameInstaller {
   }
 
 	Future<void> download(vanilla.VersionFiles data) async {
-    jarDownloadHelper = DownloadHelper(constructLibraries(data, minecraftVersion));
+    DownloadHelper jarDownloadHelper = DownloadHelper(constructLibraries(data, minecraftVersion));
+    logger.startDownload(jarDownloadHelper);
     await jarDownloadHelper.downloadAll();
 
-    assetDownloadHelper = AssetsDownloadHelper(await constructAssets(data), data.assetIndex!.sha1);
+    DownloadHelper assetDownloadHelper = AssetsDownloadHelper(await constructAssets(data), data.assetIndex!.sha1);
+    logger.startDownload(assetDownloadHelper);
     await assetDownloadHelper.downloadAll();
 	}
 
@@ -115,9 +128,6 @@ class VanillaInstaller extends GameInstaller {
     }
     return true;
   }
-
-  @override
-  List<Problem> get errors => [...jarDownloadHelper.errors, ...assetDownloadHelper.errors];
 }
 
 List<String> getOS(){

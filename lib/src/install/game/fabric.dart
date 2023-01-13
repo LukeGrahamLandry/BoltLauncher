@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io' show File, Platform;
+import 'package:bolt_launcher/src/loggers/install.dart';
 import 'package:bolt_launcher/src/loggers/problem.dart';
 import 'package:bolt_launcher/src/install/util/remote_file.dart';
 import 'package:path/path.dart' as p;
@@ -14,38 +15,36 @@ mixin FabricInstallerSettings {
 
   Future<fabric.VersionList> get versionListMetadata => MetadataCache.fabricVersions;
 
-  Future<fabric.VersionFiles> versionFilesMetadata(String minecraftVersion, String loaderVersion) async {
-    return fabric.VersionFiles.fromJson(await cachedFetchJson("${GlobalOptions.metadataUrls.fabric}/versions/loader/$minecraftVersion/$loaderVersion", "fabric-$minecraftVersion-$loaderVersion.json"));
-  } 
+  Future<fabric.VersionFiles> versionFilesMetadata(String minecraftVersion, String loaderVersion) => MetadataCache.fabricVersionData(minecraftVersion, loaderVersion);  
 
   String loaderName = "Fabric";
 }
 
 class FabricInstaller extends GameInstaller with FabricInstallerSettings {
-  late VanillaInstaller vanilla;
-  
-  late DownloadHelper downloadHelper;
-
-  FabricInstaller(String minecraftVersion, String loaderVersion) : super(minecraftVersion, loaderVersion) {
-    vanilla = VanillaInstaller(minecraftVersion);
+  FabricInstaller(String minecraftVersion, String loaderVersion) : super(minecraftVersion, loaderVersion){
+    logger = InstallLogger(loaderName.toLowerCase(), minecraftVersion);
   }
 
   @override
   Future<bool> install() async {
-    await vanilla.install();
+    logger.start();
+    await installVanilla();
 
     var metadata = await getMetadata();
     if (metadata == null){
-			print("$loaderName $minecraftVersion $loaderVersion not found.");
+			logger.failed(VersionProblem(minecraftVersion, loaderVersion: loaderVersion));
 			return false;
 		}
 
     await download(metadata);
+
+    logger.end();
     return true;
   }
 
   Future<void> download(fabric.VersionFiles data) async {
-    downloadHelper = DownloadHelper(await constructLibraries(data));
+    DownloadHelper downloadHelper = DownloadHelper(await constructLibraries(data));
+    logger.startDownload(downloadHelper);
     await downloadHelper.downloadAll();
   }
 
@@ -54,7 +53,7 @@ class FabricInstaller extends GameInstaller with FabricInstallerSettings {
     allLibs.addAll(data.launcherMeta.libraries.client);
     allLibs.add(fabric.LibraryLocation(data.loader.maven, "$defaultMavenUrl/"));
 
-    print("Loading maven hashes.");
+    logger.loadMavenHashes(allLibs.length);
     List<RemoteFile> toDownload = await Future.wait(allLibs.map((lib) => lib.lib));
     return toDownload;
   }

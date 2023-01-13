@@ -1,9 +1,7 @@
 import 'dart:io' show File, FileMode, Link;
-import 'dart:typed_data';
 import 'package:bolt_launcher/bolt_launcher.dart';
 import 'package:bolt_launcher/src/loggers/problem.dart';
 import 'package:bolt_launcher/src/install/util/remote_file.dart';
-import 'package:bolt_launcher/src/loggers/download.dart';
 import 'package:http/http.dart';
 
 import 'dart:convert';
@@ -12,14 +10,13 @@ import 'package:crypto/crypto.dart';
 
 import '../../data/cache.dart';
 import 'package:path/path.dart' as p;
-import 'package:crypto/crypto.dart';
 
 class DownloadHelper {
   late PastDownloadManifest manifest;
-  List<Problem> get errors => progress.errors;
+  List<Problem> get errors => logger.errors;
   List<RemoteFile> toDownload;
   late Client httpClient;
-  late DownloadLogger progress;
+  late DownloadLogger logger;
   late List<String> localSearchLocations;
 
   DownloadHelper(this.toDownload, {List<String>? localSearchLocations}) {
@@ -28,12 +25,12 @@ class DownloadHelper {
   }
 
   void setLogger(DownloadLogger logger){
-    progress = logger;
+    this.logger = logger;
     logger.init(toDownload);
   }
 
   Future<void> downloadAll() async {
-    progress.start();
+    logger.start();
     manifest = await PastDownloadManifest.open();
     httpClient = Client();
 
@@ -43,12 +40,12 @@ class DownloadHelper {
     
     httpClient.close();
     await manifest.close();
-    progress.end();
+    logger.end();
   }
   
   Future<bool> downloadLibrary(RemoteFile lib) async {
     if (await isCached(lib)){
-      progress.cached(lib);
+      logger.cached(lib);
       return true;
     }
 
@@ -72,7 +69,7 @@ class DownloadHelper {
           addToManifestCache(lib);
         }
         
-        progress.foundWellKnown(lib, wellKnownInstall);
+        logger.foundWellKnown(lib, wellKnownInstall);
         
         return true;
       } 
@@ -96,13 +93,13 @@ class DownloadHelper {
     }
 
     if (finalProblem != null){
-      progress.failed(lib, finalProblem);
+      logger.failed(lib, finalProblem);
       return false;
     } else if (response == null){  // i dont think this is possible without finalProblem being non-null above
-      progress.failed(lib, HttpProblem("null response", lib.url));
+      logger.failed(lib, HttpProblem("null response", lib.url));
       return false;
     } else if (response.statusCode != 200){
-      progress.failed(lib, HttpProblem("Status code ${response.statusCode}", lib.url));
+      logger.failed(lib, HttpProblem("Status code ${response.statusCode}", lib.url));
       return false;
     }
 
@@ -116,7 +113,7 @@ class DownloadHelper {
       hashInput.add(part);
       fileSink.add(part);
       progressLength += part.length;
-      progress.downloading(lib, progressLength, totalLength);
+      logger.downloading(lib, progressLength, totalLength);
     }
 
     fileSink.close();
@@ -124,12 +121,12 @@ class DownloadHelper {
     var digest = hashOutput.events.single;
     if (digest.toString() != lib.sha1){
       targetFile.delete();
-      progress.failed(lib, HashProblem(lib.sha1, digest.toString(), lib.url));
+      logger.failed(lib, HashProblem(lib.sha1, digest.toString(), lib.url));
       return false;
     }
 
     addToManifestCache(lib);
-    progress.downloaded(lib, await targetFile.length());
+    logger.downloaded(lib, await targetFile.length());
 
     await manifest.quickSave();
 
@@ -150,7 +147,7 @@ class DownloadHelper {
 
     bool matchesManifest = manifestHash == lib.sha1;
     if (!matchesManifest && manifestHash != null){
-      progress.expectedHashChanged(lib, manifestHash);
+      logger.expectedHashChanged(lib, manifestHash);
     }
 
     if (GlobalOptions.recomputeHashesBeforeLaunch || manifestHash == null){

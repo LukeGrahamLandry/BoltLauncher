@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:bolt_launcher/bolt_launcher.dart';
 import 'package:bolt_launcher/src/data/cache.dart';
 import 'package:bolt_launcher/src/install/util/downloader.dart';
+import 'package:bolt_launcher/src/loggers/install.dart';
 import 'package:bolt_launcher/src/loggers/problem.dart';
 import 'package:bolt_launcher/src/api_models/forge_metadata.dart' as forge;
 import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart' as v;
@@ -13,53 +14,54 @@ import 'package:path/path.dart' as p;
 import 'package:archive/archive_io.dart';
 
 class ForgeInstaller extends GameInstaller {
-  late VanillaInstaller vanilla;
-
-  late DownloadHelper downloadHelper;
-
-  late RemoteFile officialForgeInstaller;
   late List<RemoteFile> gameLibs;
 
   ForgeInstaller(String minecraftVersion, String loaderVersion) : super(minecraftVersion, loaderVersion){
-    vanilla = VanillaInstaller(minecraftVersion);
+    logger = InstallLogger("forge", minecraftVersion);
   }
 
   @override
   Future<bool> install() async {
-    await vanilla.install();
+    logger.start();
+    await installVanilla();
     
-    bool foundInstaller = await extractInstallerMetadata();
+    bool foundInstaller = await extractInstallerMetadata(minecraftVersion, loaderVersion!);
     if (!foundInstaller){
-      print("Could not find the installer jar for Forge $loaderVersion");
+      logger.failed(VersionProblem(minecraftVersion, loaderVersion: loaderVersion));
       return false;
     }
     await downloadLibraries();
     await ForgeProcessors(minecraftVersion, loaderVersion!).runAll();
+
+    logger.end();
     return true;
   }
 
   /// download the official forge installer jar file and extract the metadata json files. 
-  Future<bool> extractInstallerMetadata() async {
-    officialForgeInstaller = await MavenFile.of(MavenArtifactImpl("net.minecraftforge:forge:$minecraftVersion-$loaderVersion:installer", "${GlobalOptions.metadataUrls.forgeMaven}/"), p.join(Locations.installDirectory, "libraries"));
+  static Future<bool> extractInstallerMetadata(String minecraftVersion, String loaderVersion) async {
+    RemoteFile officialForgeInstaller = await MavenFile.of(MavenArtifactImpl("net.minecraftforge:forge:$minecraftVersion-$loaderVersion:installer", "${GlobalOptions.metadataUrls.forgeMaven}/"), p.join(Locations.installDirectory, "libraries"));
     List<RemoteFile> files = [officialForgeInstaller];
-    downloadHelper = DownloadHelper(files);
+    DownloadHelper downloadHelper = DownloadHelper(files);
     await downloadHelper.downloadAll();
 
+    if (downloadHelper.errors.isNotEmpty) return false;
+
     Archive zipped = ZipDecoder().decodeBytes(await File(officialForgeInstaller.fullPath).readAsBytes());
-    await File(p.join(Locations.metadataCacheDirectory, "forge-$loaderVersion-install_profile.json")).writeAsBytes(zipped.findFile("install_profile.json")!.content);
-    await File(p.join(Locations.metadataCacheDirectory, "forge-$loaderVersion-version.json")).writeAsBytes(zipped.findFile("version.json")!.content);
+    await File(p.join(Locations.metadataCacheDirectory, "forge/$loaderVersion-install_profile.json")).writeAsBytes(zipped.findFile("install_profile.json")!.content);
+    await File(p.join(Locations.metadataCacheDirectory, "forge/$minecraftVersion-forge-$loaderVersion.json")).writeAsBytes(zipped.findFile("version.json")!.content);
 
     return true;
   }
 
   // download all the library jar files needed for forge processors and forge game runtime. 
   Future<void> downloadLibraries() async {
-    forge.InstallProfile profile = forge.InstallProfile.fromJson(json.decode(File(p.join(Locations.metadataCacheDirectory, "forge-$loaderVersion-install_profile.json")).readAsStringSync()));
+    forge.InstallProfile profile = await MetadataCache.forgeInstallProfile(minecraftVersion, loaderVersion!);
 
     List<RemoteFile> processorLibs = List.of(profile.libraries.map((e) => e.downloads.artifact)); // needed for processor
-    v.VersionFiles launchData = v.VersionFiles.fromJson(json.decode(File(p.join(Locations.metadataCacheDirectory, "forge-$loaderVersion-version.json")).readAsStringSync()));
+    v.VersionFiles launchData = await MetadataCache.forgeVersionData(minecraftVersion, loaderVersion!);
     gameLibs = List.of(launchData.libraries.map((e) => e.downloads.artifact)); // needed for launcher
-    downloadHelper = DownloadHelper(processorLibs + gameLibs);
+    DownloadHelper downloadHelper = DownloadHelper(processorLibs + gameLibs);
+    logger.startDownload(downloadHelper);
     await downloadHelper.downloadAll();
   }
 }
@@ -77,7 +79,7 @@ class ForgeProcessors {
   Future<void> runAll() async {
     int startTime = DateTime.now().millisecondsSinceEpoch;
 
-    profile = forge.InstallProfile.fromJson(json.decode(await File(p.join(Locations.metadataCacheDirectory, "forge-$loaderVersion-install_profile.json")).readAsString()));
+    profile = await MetadataCache.forgeInstallProfile(minecraftVersion, loaderVersion);
     data = await genParameters();
 
     bool alreadyPatched = await checkForPatchedJar();

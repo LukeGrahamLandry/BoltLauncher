@@ -23,6 +23,10 @@ class HttpProblem extends Problem {
 }
 
 class VersionProblem extends Problem {
+  String minecraftVersion;
+  String? loaderVersion;
+  VersionProblem(this.minecraftVersion, {this.loaderVersion});
+  
   @override
   String get message => "Unsupported minecraft & mod loader version combination";
 }

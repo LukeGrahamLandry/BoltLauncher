@@ -17,10 +17,8 @@ mixin QuiltInstallerSettings on FabricInstallerSettings {
   Future<fabric.VersionList> get versionListMetadata => MetadataCache.quiltVersions;
 
   @override
-  Future<fabric.VersionFiles> versionFilesMetadata(String minecraftVersion, String loaderVersion) async {
-    return fabric.VersionFiles.fromJson(await cachedFetchJson("${GlobalOptions.metadataUrls.quilt}/versions/loader/$minecraftVersion/$loaderVersion", "quilt-$minecraftVersion-$loaderVersion.json"));
-  }
-
+  Future<fabric.VersionFiles> versionFilesMetadata(String minecraftVersion, String loaderVersion) => MetadataCache.quiltVersionData(minecraftVersion, loaderVersion);
+  
   @override
   String loaderName = "Quilt";
 }

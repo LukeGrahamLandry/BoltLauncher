@@ -19,7 +19,7 @@ class JavaFinder {
     return found;
   }
 
-  static List<String> wellKnownJreFolders(){
+  static Future<List<String>> wellKnownJreFolders() async {
     List<String> results = [
       path.join(Locations.homeDirectory, "Library", "Java", "JavaVirtualMachines"),
       path.join("/Library", "Java", "JavaVirtualMachines"),
@@ -28,12 +28,27 @@ class JavaFinder {
       path.join(Locations.homeDirectory, ".gradle", "jdks"),
     ];
 
+    Directory minecraft = Directory(path.join(Locations.homeDirectory, "Library", "Application Support", "minecraft", "runtime"));
+    if (minecraft.existsSync()){
+      await for (var version in minecraft.list()){  // java-runtime-gamma
+        if (version is Directory){
+          await for (var os in version.list()){  // mac-os-arm64
+            if (os is Directory){
+              await for (var versionAgain in os.list()){  // java-runtime-gamma
+                results.add(versionAgain.path);
+              }
+            }
+          }
+        }
+      }
+    }
+
     return results;
   }
   
   /// get the paths to all java binaries in well known locations
   static Future<List<String>> findBinaries() async {
-    List<List<String>> binaryGroups = (await Future.wait(wellKnownJreFolders().map((folder) async {
+    List<List<String>> binaryGroups = (await Future.wait((await wellKnownJreFolders()).map((folder) async {
       var dir = Directory(folder);
       if (!await dir.exists()) return [];
       List<String> results = [];

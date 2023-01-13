@@ -8,7 +8,7 @@ class DownloadLogger {
   int totalFileCount = 0;
   int processedFileCount = 0;
   int totalSize = 0;
-  int processedSize = 0;  // includes downloaded and cached
+  int processedSize = 0;  // includes downloaded, cached, and found
   int downloadedSize = 0;
   int incrementalManifestCounter = 0;
   bool knownFileSizes = true;

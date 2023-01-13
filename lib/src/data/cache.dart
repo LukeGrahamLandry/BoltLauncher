@@ -8,6 +8,7 @@ import 'package:bolt_launcher/bolt_launcher.dart';
 import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart' as vanilla;
 import 'package:bolt_launcher/src/api_models/fabric_metadata.dart' as fabric;
 import 'package:bolt_launcher/src/api_models/prism_metadata.dart' as prism;
+import 'package:bolt_launcher/src/api_models/forge_metadata.dart' as forge;
 
 part 'cache.g.dart';
 
@@ -49,34 +50,39 @@ class PastDownloadManifest {
 
 class MetadataCache {
   static Future<vanilla.VersionList> get vanillaVersions async {
-     return vanilla.VersionList.fromJson(await cachedFetchJson(GlobalOptions.metadataUrls.vanilla, "vanilla-versions.json"));
+     return vanilla.VersionList.fromJson(await cachedFetchJson(GlobalOptions.metadataUrls.vanilla, "vanilla/versions.json"));
   }
 
   static Future<fabric.VersionList> get fabricVersions async {
-     return fabric.VersionList.fromJson(await cachedFetchJson("${GlobalOptions.metadataUrls.fabric}/versions", "fabric-versions.json"));
-  }
-
-  static Future<prism.VersionList> get forgeVersions async {
-     return prism.VersionList.fromJson(await cachedFetchJson("${GlobalOptions.metadataUrls.prismLike}/net.minecraftforge/index.json", "forge-versions.json"));
+     return fabric.VersionList.fromJson(await cachedFetchJson("${GlobalOptions.metadataUrls.fabric}/versions", "fabric/versions.json"));
   }
 
   static Future<fabric.VersionList> get quiltVersions async {
-    // 2023-01-04 https://meta.quiltmc.org/v3/versions does not return valid json.
-
-    String loaderData = await cachedFetchText("${GlobalOptions.metadataUrls.quilt}/versions/loader", "quilt-loader-versions.json");
-    List<fabric.LoaderVerson> loaderVersions = [];
-    json.decode(loaderData).forEach((v) => loaderVersions.add(fabric.LoaderVerson.fromJson(v)));
-
-    String gameData = await cachedFetchText("${GlobalOptions.metadataUrls.quilt}/versions/game", "quilt-game-versions.json");
-    gameData = gameData.replaceFirst("][", ",");
-    List<fabric.VanillaVersion> gameVersions = [];
-    json.decode(gameData).forEach((v) => gameVersions.add(fabric.VanillaVersion.fromJson(v)));
-
-    return fabric.VersionList(gameVersions, loaderVersions);
+    return fabric.VersionList.fromJson(await cachedFetchJson("${GlobalOptions.metadataUrls.quilt}/versions", "quilt/versions.json"));
   }
 
   static Future<Map<String, String>> get forgeRecommendedVersions async {
-    return ((await cachedFetchJson("${GlobalOptions.metadataUrls.forge}/promotions_slim.json", "forge-versions-slim.json"))["promos"] as Map).map((key, value) => MapEntry(key, value as String));
+    return ((await cachedFetchJson("${GlobalOptions.metadataUrls.forge}/promotions_slim.json", "forge/versions-slim.json"))["promos"] as Map).map((key, value) => MapEntry(key, value as String));
+  }
+
+  static Future<fabric.VersionFiles> quiltVersionData(String minecraftVersion, String loaderVersion) async {
+    return fabric.VersionFiles.fromJson(await cachedFetchJson("${GlobalOptions.metadataUrls.quilt}/versions/loader/$minecraftVersion/$loaderVersion", "quilt/quilt-loader-$loaderVersion-$minecraftVersion.json"));
+  }
+
+  static Future<fabric.VersionFiles> fabricVersionData(String minecraftVersion, String loaderVersion) async {
+    return fabric.VersionFiles.fromJson(await cachedFetchJson("${GlobalOptions.metadataUrls.fabric}/versions/loader/$minecraftVersion/$loaderVersion", "fabric/fabric-loader-$loaderVersion-$minecraftVersion.json"));
+  }
+
+  static Future<forge.InstallProfile> forgeInstallProfile(String minecraftVersion, String loaderVersion) async {
+    File file = File(p.join(Locations.metadataCacheDirectory, "forge/$loaderVersion-install_profile.json"));
+    if (!(await file.exists())) await ForgeInstaller.extractInstallerMetadata(minecraftVersion, loaderVersion);
+    return forge.InstallProfile.fromJson(json.decode(await file.readAsString()));
+  }
+
+  static Future<vanilla.VersionFiles> forgeVersionData(String minecraftVersion, String loaderVersion) async {
+    File file = File(p.join(Locations.metadataCacheDirectory, "forge/$minecraftVersion-forge-$loaderVersion.json"));
+    if (!(await file.exists())) await ForgeInstaller.extractInstallerMetadata(minecraftVersion, loaderVersion);
+    return vanilla.VersionFiles.fromJson(json.decode(await file.readAsString()));
   }
 }
 
