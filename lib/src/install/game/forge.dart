@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:bolt_launcher/bolt_launcher.dart';
 import 'package:bolt_launcher/src/data/cache.dart';
 import 'package:bolt_launcher/src/install/util/downloader.dart';
-import 'package:bolt_launcher/src/install/util/problem.dart';
+import 'package:bolt_launcher/src/loggers/problem.dart';
 import 'package:bolt_launcher/src/api_models/forge_metadata.dart' as forge;
 import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart' as v;
 import 'package:bolt_launcher/src/install/util/remote_file.dart';

@@ -4,7 +4,7 @@ export 'src/data/options.dart' show GlobalOptions, Branding;
 export 'src/data/locations.dart' show Locations;
 export 'src/data/profile.dart';
 
-export 'src/install/util/progress.dart' show DownloadProgressTracker;
+export 'src/loggers/download.dart' show DownloadLogger;
 export 'src/install/game/vanilla.dart' show GameInstaller, VanillaInstaller;
 export 'src/install/game/forge.dart' show ForgeInstaller;
 export 'src/install/game/fabric.dart' show FabricInstaller;

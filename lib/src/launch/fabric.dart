@@ -36,6 +36,7 @@ class FabricLauncher extends GameLauncher with FabricInstallerSettings {
   @override
   List<String> get jvmArgs => [
       "-XstartOnFirstThread",  // macos only?
+      // "-Djava.library.path=${p.join(Locations.installDirectory, "bin", minecraftVersion)}",
       "-cp",
       classpath
     ];

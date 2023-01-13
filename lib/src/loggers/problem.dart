@@ -21,3 +21,8 @@ class HttpProblem extends Problem {
   @override
   String get message => "$errorMessage $url";
 }
+
+class VersionProblem extends Problem {
+  @override
+  String get message => "Unsupported minecraft & mod loader version combination";
+}

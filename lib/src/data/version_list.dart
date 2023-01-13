@@ -10,7 +10,7 @@ typedef LauncherFactory = Future<GameLauncher> Function(String minecraftVersion,
 
 abstract class LoaderMeta {
   String get name;
-  Future<List<String>> get supportedMinecraftVersions => Future.value(["1.19.3", "1.19.2", "1.19.1", "1.19"]);
+  Future<List<String>> get supportedMinecraftVersions => Future.value(["1.19.3", "1.19.2", "1.19.1", "1.19", "1.18.2", "1.18.1", "1.18", "1.17.1", "1.17", "1.16.5"]);
   Future<List<String>> versions(String minecraftVersion) => hasLoaderVersions ? throw UnimplementedError() : Future.value(["0"]);
   Future<String> recommendedVersion(String minecraftVersion) => hasLoaderVersions ? throw UnimplementedError() : Future.value("0");
   bool get hasLoaderVersions => true;
@@ -36,14 +36,22 @@ class VersionListHelper {
   }
 
   static Future<String> suggestedJavaExecutable(int majorVersion) async {  // TODO: check architecture 
-    List<JavaInfo> installations = await JavaFinder.search();
-    return installations.firstWhere((element) => element.majorVersion == majorVersion).executablePath;
+    List<JavaInfo> installations = await JavaFinder.search();  // TODO fix arch 
+    return installations.firstWhere((element) => element.majorVersion == majorVersion && element.architexture == "x86_64").executablePath;
   }
 }
 
 class ForgeLoaderMeta extends LoaderMeta {
   @override
   String get name => "forge";
+
+  @override
+  // TODO: temp, read from actual forge metadata instead
+  Future<List<String>> get supportedMinecraftVersions async {
+    var versions = await super.supportedMinecraftVersions;
+    versions.remove("1.17");
+    return versions;
+  }
 
   @override
   Future<String> recommendedVersion(String minecraftVersion) async {  // TODO: it will crash on null check if forge doesnt have a release yet

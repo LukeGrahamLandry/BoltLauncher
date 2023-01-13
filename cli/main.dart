@@ -50,16 +50,17 @@ Future<void> main(List<String> arguments) async {
 }
 
 Future<void> testLaunchMinecraft() async {
-  String versionId = "1.19.3";
-  String loaderVersion = "44.1.0";
+  String versionId = "1.18.2";
+  // String loaderVersion = "40.2.0";
   String gameDir = p.join(Locations.dataDirectory, "instances", "test");
   // var installer = QuiltInstaller(versionId, "0.18.1-beta.26");
   
   Directory(gameDir).createSync(recursive: true);
 
   var logs = File("log.txt");
-  var launcher = await ForgeLauncher.create(versionId, loaderVersion, gameDir);
-  var gameProcess = await launcher.launch("java");
+  var launcher = await VanillaLauncher.create(versionId, gameDir);
+  var major = 8;
+  var gameProcess = await launcher.launch(major == 8 ? "/Library/Java/JavaVirtualMachines/jdk1.8.0_202.jdk/Contents/Home/bin/java" : "/Library/Java/JavaVirtualMachines/temurin-17.jre/Contents/Home/bin/java");
   gameProcess.stdout.listen((data) {
     stdout.add(data);
     // logs.writeAsBytesSync(data, mode: FileMode.append);

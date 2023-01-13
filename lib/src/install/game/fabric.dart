@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io' show File, Platform;
-import 'package:bolt_launcher/src/install/util/problem.dart';
+import 'package:bolt_launcher/src/loggers/problem.dart';
 import 'package:bolt_launcher/src/install/util/remote_file.dart';
 import 'package:path/path.dart' as p;
 

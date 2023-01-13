@@ -28,13 +28,18 @@ class ForgeLauncher extends GameLauncher {
   @override
   String get classpath {
     List<RemoteFile> forgeLaunchLibs = List.of(metadata.libraries.map((e) => e.downloads.artifact));
-    return "${vanilla.classpath}:${DownloadHelper.toClasspath(forgeLaunchLibs)}";
+
+    // fixes java.lang.IllegalStateException: Duplicate key on 1.18.2
+    // java-objc-bridge-1.0.0.jar shows up twice in the version json, one on its own and one with the natives but the normal artifact is there again as well 
+    var jars = "${vanilla.classpath}:${DownloadHelper.toClasspath(forgeLaunchLibs)}".split(":").toSet();
+    return jars.join(":");
   }
   
   @override
   List<String> get jvmArgs {
     List<String> args = [
-       "-XstartOnFirstThread",  // macos only?
+      "-XstartOnFirstThread",  // macos only?
+      // "-Djava.library.path=${p.join(Locations.installDirectory, "bin", minecraftVersion)}",
       "-cp",
       classpath
     ];

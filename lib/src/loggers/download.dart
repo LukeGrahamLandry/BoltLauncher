@@ -1,10 +1,10 @@
 import 'package:bolt_launcher/bolt_launcher.dart';
-import 'package:bolt_launcher/src/install/util/problem.dart';
-import 'remote_file.dart';
+import 'package:bolt_launcher/src/loggers/problem.dart';
+import '../install/util/remote_file.dart';
 
 import 'package:path/path.dart' as p;
 
-class DownloadProgressTracker {
+class DownloadLogger {
   int totalFileCount = 0;
   int processedFileCount = 0;
   int totalSize = 0;
@@ -16,7 +16,7 @@ class DownloadProgressTracker {
   late int startTime;
   int? endTime;
 
-  DownloadProgressTracker(List<RemoteFile> allLibs){
+  void init(List<RemoteFile> allLibs){
     totalFileCount = allLibs.length;
     for (RemoteFile lib in allLibs){
       if (lib.size != null){

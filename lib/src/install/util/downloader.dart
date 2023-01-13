@@ -1,10 +1,9 @@
-import 'dart:ffi';
 import 'dart:io' show File, FileMode, Link;
 import 'dart:typed_data';
 import 'package:bolt_launcher/bolt_launcher.dart';
-import 'package:bolt_launcher/src/install/util/problem.dart';
+import 'package:bolt_launcher/src/loggers/problem.dart';
 import 'package:bolt_launcher/src/install/util/remote_file.dart';
-import 'package:bolt_launcher/src/install/util/progress.dart';
+import 'package:bolt_launcher/src/loggers/download.dart';
 import 'package:http/http.dart';
 
 import 'dart:convert';
@@ -20,11 +19,17 @@ class DownloadHelper {
   List<Problem> get errors => progress.errors;
   List<RemoteFile> toDownload;
   late Client httpClient;
-  DownloadProgressTracker progress;
+  late DownloadLogger progress;
   late List<String> localSearchLocations;
 
-  DownloadHelper(this.toDownload, {List<String>? localSearchLocations}) : progress = DownloadProgressTracker(toDownload) {
+  DownloadHelper(this.toDownload, {List<String>? localSearchLocations}) {
+    setLogger(DownloadLogger());
     this.localSearchLocations = localSearchLocations ?? [];
+  }
+
+  void setLogger(DownloadLogger logger){
+    progress = logger;
+    logger.init(toDownload);
   }
 
   Future<void> downloadAll() async {

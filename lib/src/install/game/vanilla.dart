@@ -1,11 +1,12 @@
 import 'dart:convert';
-import 'dart:io' show File, Platform;
+import 'dart:io' show Directory, File, Platform;
+import 'package:archive/archive_io.dart';
 import 'package:bolt_launcher/bolt_launcher.dart';
 import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart';
 import 'package:bolt_launcher/src/data/cache.dart';
 import 'package:bolt_launcher/src/install/util/downloader.dart';
 import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart' as vanilla;
-import 'package:bolt_launcher/src/install/util/problem.dart';
+import 'package:bolt_launcher/src/loggers/problem.dart';
 import 'package:bolt_launcher/src/install/util/remote_file.dart';
 
 import 'package:path/path.dart' as p;
@@ -93,7 +94,7 @@ class VanillaInstaller extends GameInstaller {
 
     return toDownload;
   }
-
+  
   Future<List<RemoteFile>> constructAssets(vanilla.VersionFiles data) async {
     File indexFile = File(p.join(Locations.installDirectory, "assets", "indexes", "$minecraftVersion.json"));
     AssetIndexHolder indexData = AssetIndexHolder.fromJson(json.decode(await indexFile.readAsString()));

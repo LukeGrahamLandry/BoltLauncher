@@ -5,7 +5,7 @@ import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart';
 import 'package:bolt_launcher/src/data/cache.dart';
 import 'package:bolt_launcher/src/install/util/downloader.dart';
 import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart' as vanilla;
-import 'package:bolt_launcher/src/install/util/problem.dart';
+import 'package:bolt_launcher/src/loggers/problem.dart';
 import 'package:bolt_launcher/src/install/util/remote_file.dart';
 
 import 'package:path/path.dart' as p;
@@ -56,6 +56,7 @@ class VanillaLauncher extends GameLauncher {
   List<String> get jvmArgs {  // TODO: read from metadata
     return [
       "-XstartOnFirstThread",  // macos only?
+      // "-Djava.library.path=${p.join(Locations.installDirectory, "bin", minecraftVersion)}",
       "-cp",
       classpath
     ];

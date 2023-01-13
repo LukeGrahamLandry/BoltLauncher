@@ -5,7 +5,7 @@ import 'package:path/path.dart' as path;
 
 import 'package:bolt_launcher/bolt_launcher.dart';
 
-int requiredGameRuntime = 15;
+int requiredGameRuntime = 30;  // 15 is good enough for 1.19+ on aarch64 jre
 File log = File("instance/logs/tests/supported_versions.txt");
 List<String> toClear = [Locations.installDirectory, Locations.metadataCacheDirectory];
 

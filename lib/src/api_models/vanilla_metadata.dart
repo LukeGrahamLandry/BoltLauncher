@@ -138,9 +138,9 @@ class Rule {
 @JsonSerializable(explicitToJson: true)
 class MainFiles {
     MainArtifact client;
-    MainArtifact client_mappings;
+    MainArtifact? client_mappings;  // 1.13.2- doesn't have the mappings data
     MainArtifact server;
-    MainArtifact server_mappings;
+    MainArtifact? server_mappings;
 
     MainFiles(this.client_mappings, this.client, this.server, this.server_mappings);
 
