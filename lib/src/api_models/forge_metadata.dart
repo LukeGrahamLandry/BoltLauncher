@@ -36,9 +36,10 @@ class Processor {
   List<String> classpath;
   List<String> args;
   List<String>? sides;
+  Map<String, String>? outputs;
   
 
-  Processor(this.jar, this.classpath, this.args, this.sides);
+  Processor(this.jar, this.classpath, this.args, this.sides, this.outputs);
 
   factory Processor.fromJson(Map<String, dynamic> json) => _$ProcessorFromJson(json);
   Map<String, dynamic> toJson() => _$ProcessorToJson(this);

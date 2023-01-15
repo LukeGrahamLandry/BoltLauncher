@@ -28,6 +28,7 @@ class JavaFinder {
       path.join(Locations.homeDirectory, ".gradle", "jdks"),
     ];
 
+    // official installer
     Directory minecraft = Directory(path.join(Locations.homeDirectory, "Library", "Application Support", "minecraft", "runtime"));
     if (minecraft.existsSync()){
       await for (var version in minecraft.list()){  // java-runtime-gamma

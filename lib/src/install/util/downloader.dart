@@ -60,9 +60,15 @@ class DownloadHelper {
         // 2023-01-05 1.19.3
         // copy all assets from borrowed: 1.346 seconds
         // link all assets to borrowed:   0.547 seconds
+
+        bool linkWorked = false;
         try {
-          await Link.fromUri(targetFile.uri).create(checkFile.path);
-        } catch (e){
+          // TODO: links confuse forge in 1.16.5 and before because it tries to guess libraries folder from a class's jar instad of reading the property (fixed in 1.17)
+          // await Link.fromUri(targetFile.uri).create(checkFile.path);
+          // linkWorked = true;
+        } catch (e){};
+
+        if (!linkWorked){
           // if anything goes wrong, like windows weird permissions stuff. just fall back to old reliable 
           await checkFile.copy(lib.fullPath);
           // only trust that it will be there next time if its in our directory, otherwise refind it

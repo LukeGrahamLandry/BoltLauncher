@@ -3,6 +3,8 @@ import 'package:bolt_launcher/src/data/cache.dart';
 import 'package:bolt_launcher/src/install/java.dart';
 import 'package:bolt_launcher/src/install/mods/curseforge.dart';
 import 'package:bolt_launcher/src/launch/forge.dart';
+import 'package:bolt_launcher/src/profile/import.dart';
+import 'package:bolt_launcher/src/profile/profile.dart';
 
 import 'commands/clear.dart';
 import 'commands/help.dart';
@@ -16,10 +18,29 @@ import 'commands/install.dart';
 Future<void> main(List<String> arguments) async {
     String program = arguments.isEmpty ? "help" : arguments[0];
 
-    List<JavaInfo> foundJava = await JavaFinder.search();
-    foundJava.forEach((element) { 
-      print(element);
-    });
+    if (program == "java"){
+      List<JavaInfo> foundJava = await JavaFinder.search();
+      foundJava.forEach((element) { 
+        print(element);
+      });
+      return;
+    }
+    
+
+    if (program == "profiles"){
+      List<MinecraftProfile> profiles = await findInstances();
+      for (var profile in profiles){
+        print(profile);
+      }
+      var process = await profiles[0].launch();
+      process.stdout.listen((event) {
+        stdout.add(event);
+      });
+      process.stderr.listen((event) {
+        stdout.add(event);
+      });
+      return;
+    }
 
     if (program == "launch") {
       await testLaunchMinecraft();
@@ -50,7 +71,7 @@ Future<void> main(List<String> arguments) async {
 }
 
 Future<void> testLaunchMinecraft() async {
-  String versionId = "1.18.2";
+  String versionId = "1.16.5";
   // String loaderVersion = "40.2.0";
   String gameDir = p.join(Locations.dataDirectory, "instances", "test");
   // var installer = QuiltInstaller(versionId, "0.18.1-beta.26");
@@ -58,8 +79,11 @@ Future<void> testLaunchMinecraft() async {
   Directory(gameDir).createSync(recursive: true);
 
   var logs = File("log.txt");
-  var launcher = await VanillaLauncher.create(versionId, gameDir);
-  var major = 8;
+  var loaderVersion = await VersionListHelper.FORGE.recommendedVersion(versionId);
+  var launcher = await ForgeLauncher.create(versionId, loaderVersion, gameDir);
+  var major = await VersionListHelper.suggestedJavaMajorVersion(versionId);
+
+  print("Starting Minecraft...");
   var gameProcess = await launcher.launch(major == 8 ? "/Library/Java/JavaVirtualMachines/jdk1.8.0_202.jdk/Contents/Home/bin/java" : "/Library/Java/JavaVirtualMachines/temurin-17.jre/Contents/Home/bin/java");
   gameProcess.stdout.listen((data) {
     stdout.add(data);

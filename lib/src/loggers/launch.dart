@@ -24,6 +24,7 @@ class LaunchLogger {
 
   void start(String javaExecutable, List<String> args) {
     String startCommandLogLocation = p.join(gameDirectory, "launch.sh");
+    print("cd $gameDirectory && $javaExecutable ${args.join(" ")}");
     File(startCommandLogLocation)..create(recursive: true)..writeAsStringSync("cd $gameDirectory && $javaExecutable ${args.join(" ")}");
     Process.run("chmod", ["-v", "777", startCommandLogLocation]);
   }

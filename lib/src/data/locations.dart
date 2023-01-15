@@ -36,4 +36,6 @@ class Locations {
   static String get manifestFile {
     return path.join(installDirectory, "manifest.json");
   }
+
+  static String get curseforgeInstances => path.join(Locations.homeDirectory, "Documents", "curseforge", "minecraft", "Instances");
 }

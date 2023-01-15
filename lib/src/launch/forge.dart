@@ -34,18 +34,14 @@ class ForgeLauncher extends GameLauncher {
 
     // fixes java.lang.IllegalStateException: Duplicate key on 1.18.2
     // java-objc-bridge-1.0.0.jar shows up twice in the version json, one on its own and one with the natives but the normal artifact is there again as well 
-    var jars = "${vanilla.classpath}:${DownloadHelper.toClasspath(forgeLaunchLibs)}".split(":").toSet();
+    var jars = "${DownloadHelper.toClasspath(forgeLaunchLibs)}:${vanilla.classpath}".split(":").toSet();
+    // var jars = "${vanilla.classpath}:${DownloadHelper.toClasspath(forgeLaunchLibs)}".split(":").toSet();  // crashes
     return jars.join(":");
   }
   
   @override
   List<String> get jvmArgs {
-    List<String> args = [
-      "-XstartOnFirstThread",  // macos only?
-      // "-Djava.library.path=${p.join(Locations.installDirectory, "bin", minecraftVersion)}",
-      "-cp",
-      classpath
-    ];
+    List<String> args = [];
 
     metadata.arguments.jvm.forEach((element) {
       if (element is String){
@@ -55,6 +51,15 @@ class ForgeLauncher extends GameLauncher {
         args.add(element);
       }
     });
+
+    args.addAll([
+      "-XstartOnFirstThread",  // macos only?
+      "-Dfml.earlyprogresswindow=false",
+      // "-Djava.library.path=${p.join(Locations.installDirectory, "bin", minecraftVersion)}",
+      "-cp",
+      classpath
+    ]);
+
     return args;
   }
   

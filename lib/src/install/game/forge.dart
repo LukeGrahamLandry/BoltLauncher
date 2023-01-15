@@ -47,8 +47,8 @@ class ForgeInstaller extends GameInstaller {
     if (downloadHelper.errors.isNotEmpty) return false;
 
     Archive zipped = ZipDecoder().decodeBytes(await File(officialForgeInstaller.fullPath).readAsBytes());
-    await File(p.join(Locations.metadataCacheDirectory, "forge/$loaderVersion-install_profile.json")).writeAsBytes(zipped.findFile("install_profile.json")!.content);
-    await File(p.join(Locations.metadataCacheDirectory, "forge/$minecraftVersion-forge-$loaderVersion.json")).writeAsBytes(zipped.findFile("version.json")!.content);
+    await File(p.join(Locations.metadataCacheDirectory, "forge/$loaderVersion-install_profile.json"))..createSync(recursive: true)..writeAsBytes(zipped.findFile("install_profile.json")!.content);
+    await File(p.join(Locations.metadataCacheDirectory, "forge/$minecraftVersion-forge-$loaderVersion.json"))..createSync(recursive: true)..writeAsBytes(zipped.findFile("version.json")!.content);
 
     return true;
   }
@@ -154,6 +154,28 @@ class ForgeProcessors {
     var processorProcessLmao = await Process.start("java", ["-cp", classpath, mainClass, ...args]);
     await stdout.addStream(processorProcessLmao.stdout);
     await stdout.addStream(processorProcessLmao.stderr);
+
+    if (processor.outputs != null){
+      print("Checking processor results.");
+      processor.outputs!.forEach((key, value) {
+        String fileToCheckKey = key.substring(1, key.length-1);
+        print(fileToCheckKey);
+        print(data);
+        File output = File(data[fileToCheckKey]!);
+        if (!output.existsSync()){
+          print("${output.path} not found.");
+          return;
+        }
+
+        var digest = sha1.convert(output.readAsBytesSync()).toString();
+        String hashKey = value.substring(1, value.length-1);
+        if (digest != data[hashKey]){
+          print("FAIL: Hash mismatch, expected ${data[hashKey]} but got $digest for $fileToCheckKey (${output.path})");
+        } else {
+          print("PASS: Hash matched ${output.path}");
+        }
+      });
+    }
   }
 
   // find the main class of a jar file by reading its manifest file

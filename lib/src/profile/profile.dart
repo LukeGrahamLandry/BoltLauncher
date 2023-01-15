@@ -46,11 +46,16 @@ class MinecraftProfile {
     return MinecraftProfile.fromJson(jsonDecode(File(path).readAsStringSync()));
   }
 
+  String toString(){
+    return "Minecraft $minecraftVersion $loader ${loaderVersion == "0" ? "" : "$loaderVersion "}at $gameDirectory";
+  }
+
   factory MinecraftProfile.fromJson(Map<String, dynamic> json) => _$MinecraftProfileFromJson(json);
   Map<String, dynamic> toJson() => _$MinecraftProfileToJson(this);
 
   Future<Process> launch() async {
     GameLauncher launcher = await VersionListHelper.modLoaders[loader]!.launcher(minecraftVersion, loaderVersion, gameDirectory);
+    launcher.checkInstallation();
     return launcher.launch(jvmPath);
   }
 }
