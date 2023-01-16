@@ -14,31 +14,22 @@ import 'package:path/path.dart' as p;
 import 'package:args/args.dart';
 
 import 'commands/install.dart';
+import 'commands/profiles.dart';
 
 Future<void> main(List<String> arguments) async {
     String program = arguments.isEmpty ? "help" : arguments[0];
 
     if (program == "java"){
-      List<JavaInfo> foundJava = await JavaFinder.search();
-      foundJava.forEach((element) { 
-        print(element);
-      });
-      return;
-    }
-    
+      File cache = File(p.join(Locations.metadataCacheDirectory, "java.json"));
+      if (cache.existsSync()) cache.deleteSync();
 
-    if (program == "profiles"){
-      List<MinecraftProfile> profiles = await findInstances();
-      for (var profile in profiles){
-        print(profile);
-      }
-      var process = await profiles[0].launch();
-      process.stdout.listen((event) {
-        stdout.add(event);
-      });
-      process.stderr.listen((event) {
-        stdout.add(event);
-      });
+      int startTime = DateTime.now().millisecondsSinceEpoch;
+      List<JavaInfo> foundJava = await JavaFinder.search();
+      int endTime = DateTime.now().millisecondsSinceEpoch;
+
+      print("Found ${foundJava.length} java installations in ${(endTime - startTime) / 1000} seconds.");
+      foundJava.forEach(print);
+
       return;
     }
 
@@ -59,6 +50,11 @@ Future<void> main(List<String> arguments) async {
       return;
     }
 
+    if (program == "profile") {
+      profileCommand(arguments);
+      return;
+    }
+
     if (arguments.length <= 1) {
         print("");
         print(getHelp(program));
@@ -68,6 +64,7 @@ Future<void> main(List<String> arguments) async {
 
     if (program == "clear" && arguments[1] == "confirm") clearCommand(arguments);
     if (program == "install") installCommand(arguments);
+    
 }
 
 Future<void> testLaunchMinecraft() async {

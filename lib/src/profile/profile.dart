@@ -55,7 +55,7 @@ class MinecraftProfile {
 
   Future<Process> launch() async {
     GameLauncher launcher = await VersionListHelper.modLoaders[loader]!.launcher(minecraftVersion, loaderVersion, gameDirectory);
-    launcher.checkInstallation();
+    // the getter ^ calls create which checks installation for you already. 
     return launcher.launch(jvmPath);
   }
 }

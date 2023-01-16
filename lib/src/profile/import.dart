@@ -13,20 +13,21 @@ Future<List<MinecraftProfile>> findInstances() async {
 
   var dir = Directory(Locations.curseforgeInstances);
   if (dir.existsSync()){
-    for (var instance in dir.listSync()){
+    await for (var instance in dir.list()){
       if (instance is Directory){
         results.addAll(await importCurseforgeInstance(instance));
       }
     }
   }
+
   return results;
 }
 
 Future<List<MinecraftProfile>> importCurseforgeInstance(Directory instanceFolder) async {
   File info = File(path.join(instanceFolder.path, "minecraftInstance.json"));
-  if (!info.existsSync()) return [];
+  if (!(await info.exists())) return [];
 
-  cf.MinecraftInstance instance = cf.MinecraftInstance.fromJson(jsonDecode(info.readAsStringSync()));
+  cf.MinecraftInstance instance = cf.MinecraftInstance.fromJson(jsonDecode(await info.readAsString()));
 
   String loader = "vanilla";
   String loaderVersion = "0";
@@ -35,9 +36,8 @@ Future<List<MinecraftProfile>> importCurseforgeInstance(Directory instanceFolder
     loaderVersion = instance.baseModLoader!.forgeVersion!;  // they call the variable that even for fabric  
   }
 
-
   var javaMajor = await VersionListHelper.suggestedJavaMajorVersion(instance.gameVersion);
   String jvmPath = await VersionListHelper.suggestedJavaExecutable(javaMajor);
-  MinecraftProfile result = MinecraftProfile.empty(jvmPath, loader, instance.gameVersion, await VersionListHelper.FORGE.recommendedVersion(instance.gameVersion), instanceFolder.path);
+  MinecraftProfile result = MinecraftProfile.empty(jvmPath, loader, instance.gameVersion, loaderVersion, instanceFolder.path);
   return [result];
 }

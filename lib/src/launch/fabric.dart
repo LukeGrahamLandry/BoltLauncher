@@ -29,6 +29,7 @@ class FabricLauncher extends GameLauncher with FabricInstallerSettings {
     List<fabric.LibraryLocation> fabricLibs = [...metadata.launcherMeta.libraries.common];
     fabricLibs.addAll(metadata.launcherMeta.libraries.client);
     fabricLibs.add(fabric.LibraryLocation(metadata.loader.maven, "$defaultMavenUrl/"));
+    fabricLibs.add(fabric.LibraryLocation(metadata.intermediary.maven, "$defaultMavenUrl/"));
     String fabricClasspath = fabricLibs.map((e) => p.join(Locations.installDirectory, "libraries", e.path)).join(":");
     return "$fabricClasspath:${vanilla.classpath}";
   }
