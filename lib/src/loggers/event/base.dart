@@ -7,15 +7,15 @@ abstract class Problem {
 class HasVersionInfo extends Event {
   late String modLoader;
   late String minecraftVersion;
-  late String loaderVersion;
+  late String? loaderVersion;
 
   void init(String modLoader, String minecraftVersion, String? loaderVersion){
     this.minecraftVersion = minecraftVersion;
     this.modLoader = modLoader;
-    this.loaderVersion = loaderVersion ?? "0";
+    this.loaderVersion = loaderVersion;
   }
 
-  String get id => "$minecraftVersion-$modLoader-$loaderVersion";
+  String get id => "$minecraftVersion-$modLoader${loaderVersion == null ? "" : "-$loaderVersion"}";
 }
 
 class TaskTime {
@@ -23,4 +23,9 @@ class TaskTime {
   int? endTime;
 
   TaskTime(this.startTime);
+}
+
+class FetchMavenHash extends Event {
+  String url;
+  FetchMavenHash(this.url);
 }

@@ -5,7 +5,7 @@ import 'package:args/args.dart';
 
 import 'package:bolt_launcher/bolt_launcher.dart';
 
-void installCommand(List<String> arguments) async {
+Future<void> installCommand(List<String> arguments) async {
   final parser = ArgParser()
                     ..addOption("version", abbr: 'v')
                     ..addOption("loader", abbr: 'l', defaultsTo: "vanilla")
@@ -40,21 +40,14 @@ void installCommand(List<String> arguments) async {
 }
 
 Future<void> installMinecraft(String loader, String version, bool hashChecking) async {
-  GameInstaller installer;
-  if (loader == "vanilla") {
-    installer = VanillaInstaller(version);
-  }
-  else if (loader == "fabric"){
-    installer = FabricInstaller(version, "0.14.12");
-  }
-  else if (loader == "quilt"){
-    installer = QuiltInstaller(version, "0.18.1-beta.26");
-  } else {
+  LoaderMeta? loaderInfo = VersionListHelper.modLoaders[loader];
+
+  if (loaderInfo == null){
     print("Sorry, '$loader' is not a recognized mod loader. Try 'vanilla', 'fabric', or 'quilt'");
     return;
   }
 
-  await installer.install();
+  await loaderInfo.launcher.call(version, await loaderInfo.recommendedVersion(version), "");
 }
 
 Future<void> createEmptyProfile(String name, String loader, String version) async {

@@ -13,9 +13,15 @@ class Logger {
   List<DownloadLogger> downloads = [];
   
   void log(Event event){
-    if (event is DownloadEvent) logDownload(event);
-    if (event is InstallEvent) logInstall(event);
-    if (event is LaunchEvent) logLaunch(event);
+    if (event is DownloadEvent) {
+      logDownload(event);
+    } else if (event is InstallEvent) {
+      logInstall(event);
+    } else if (event is LaunchEvent) {
+      logLaunch(event);
+    } else if (event is FetchMavenHash){
+      logStr("Fetching maven hash: ${event.url}");
+    }
   }
   
   void logDownload(DownloadEvent event) {
@@ -69,11 +75,7 @@ class Logger {
       installTasks[event.id]?.endTime = DateTime.now().millisecondsSinceEpoch;
       logStr("Installation check of ${event.id} finished in ${(installTasks[event.id]!.endTime! - installTasks[event.id]!.startTime) / 1000} seconds.");
     }
-
-    else if (event is LoadMavenHashes){
-      logStr("Start loading ${event.length} maven hashes");
-    }
-
+    
     else if (event is VersionNotFound){
       logStr(event.message);
     }

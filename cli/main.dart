@@ -17,54 +17,59 @@ import 'commands/install.dart';
 import 'commands/profiles.dart';
 
 Future<void> main(List<String> arguments) async {
-    String program = arguments.isEmpty ? "help" : arguments[0];
+  await MavenHashCache.load();
+  await run(arguments);
+  await MavenHashCache.save();
+}
 
-    if (program == "java"){
-      File cache = File(p.join(Locations.metadataCacheDirectory, "java.json"));
-      if (cache.existsSync()) cache.deleteSync();
+Future<void> run(List<String> arguments) async {
+  String program = arguments.isEmpty ? "help" : arguments[0];
 
-      int startTime = DateTime.now().millisecondsSinceEpoch;
-      List<JavaInfo> foundJava = await JavaFinder.search();
-      int endTime = DateTime.now().millisecondsSinceEpoch;
+  if (program == "java"){
+    File cache = File(p.join(Locations.metadataCacheDirectory, "java.json"));
+    if (cache.existsSync()) cache.deleteSync();
 
-      print("Found ${foundJava.length} java installations in ${(endTime - startTime) / 1000} seconds.");
-      foundJava.forEach(print);
+    int startTime = DateTime.now().millisecondsSinceEpoch;
+    List<JavaInfo> foundJava = await JavaFinder.search();
+    int endTime = DateTime.now().millisecondsSinceEpoch;
 
+    print("Found ${foundJava.length} java installations in ${(endTime - startTime) / 1000} seconds.");
+    foundJava.forEach(print);
+
+    return;
+  }
+
+  if (program == "launch") {
+    await testLaunchMinecraft();
+    return;
+  }
+
+  if (program == "list"){
+      (await getProfiles()).forEach((key, value) {
+          print("$key: $value");
+      });
       return;
-    }
+  }
 
-    if (program == "launch") {
-      await testLaunchMinecraft();
+  if (program == "mod") {
+    downloadFromCurseMaven("267602", "2642375", "instance/mods");
+    return;
+  }
+
+  if (program == "profile") {
+    profileCommand(arguments);
+    return;
+  }
+
+  if (arguments.length <= 1) {
+      print("");
+      print(getHelp(program));
+      print("");
       return;
-    }
+  }
 
-    if (program == "list"){
-        (await getProfiles()).forEach((key, value) {
-            print("$key: $value");
-        });
-        return;
-    }
-
-    if (program == "mod") {
-      downloadFromCurseMaven("267602", "2642375", "instance/mods");
-      return;
-    }
-
-    if (program == "profile") {
-      profileCommand(arguments);
-      return;
-    }
-
-    if (arguments.length <= 1) {
-        print("");
-        print(getHelp(program));
-        print("");
-        return;
-    }
-
-    if (program == "clear" && arguments[1] == "confirm") clearCommand(arguments);
-    if (program == "install") installCommand(arguments);
-    
+  if (program == "clear" && arguments[1] == "confirm") await clearCommand(arguments);
+  if (program == "install") await installCommand(arguments);
 }
 
 Future<void> testLaunchMinecraft() async {

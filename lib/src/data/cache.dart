@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:bolt_launcher/src/api_models/java_metadata.dart';
+import 'package:bolt_launcher/src/install/util/remote_file.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:path/path.dart' as p;
 import 'package:http/http.dart' as http;
@@ -154,4 +155,61 @@ Future<void> writeJsonObjectFile(String path, Map<String, dynamic> data) async {
         await file.create(recursive: true);
     }
     file.writeAsString(JsonEncoder.withIndent('  ').convert(data));
+}
+
+class LockFile {
+  static List<String> all = []; // TODO: should clean these up somehow if the user force quits
+  String path;
+
+  LockFile(this.path);
+
+  Future<void> lock() async {
+    File lock = File("$path.lock");
+    while (await lock.exists()){
+      await Future.delayed(Duration(milliseconds: 100));
+      print("waiting for unlocked $path");
+    }
+
+    lock.createSync(recursive: true);
+  }
+
+  void unlock(){
+    File lock = File("$path.lock");
+    if (lock.existsSync()) lock.deleteSync();
+  }
+}
+
+Future<void> appendJsonObjectFile(String path, Map<String, dynamic> data) async {
+  File file = File(path);
+  LockFile lock = LockFile(path);
+  await lock.lock();
+
+  if (file.existsSync()){
+    Map<String, dynamic> oldData = await jsonObjectFile(path, {});
+    oldData.addAll(data);
+    await writeJsonObjectFile(path, oldData);
+  } else {
+    await writeJsonObjectFile(path, data);
+  }
+
+  lock.unlock();
+}
+
+class MavenHashCache {
+  static String path = p.join(Locations.metadataCacheDirectory, "maven-hashes.json");
+  static Map<String, String> cache = {};
+
+  static Future<void> load() async {
+    Map<String, dynamic> data = await jsonObjectFile(path, {});
+    cache = data.map((key, value) => MapEntry(key, value as String));
+  }
+
+  static Future<void> save() async {
+    await appendJsonObjectFile(path, cache);
+  }
+
+  static Future<void> resolve(MavenFile file) async {
+    file.sha1 = cache[file.artifact.sha1Url] ?? await file.artifact.sha1;
+    cache[file.artifact.sha1Url] ??= file.sha1;
+  }
 }

@@ -6,7 +6,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:args/args.dart';
 
-void clearCommand(List<String> arguments) async {
+Future<void> clearCommand(List<String> arguments) async {
   final parser = ArgParser()
                     ..addFlag("metadata", abbr: 'm')
                     ..addFlag("all", abbr: 'a')

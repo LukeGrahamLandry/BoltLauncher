@@ -1,5 +1,8 @@
 
 import 'package:bolt_launcher/bolt_launcher.dart';
+import 'package:bolt_launcher/src/data/cache.dart';
+import 'package:bolt_launcher/src/loggers/event/base.dart';
+import 'package:bolt_launcher/src/loggers/logger.dart';
 import 'package:path/path.dart' as p;
 import 'package:http/http.dart' as http;
 
@@ -28,7 +31,7 @@ class MavenFile implements RemoteFile {
 
   static Future<MavenFile> of(MavenArtifact artifact, String directory) async {
     MavenFile self = MavenFile(artifact, directory);
-    self.sha1 = await artifact.sha1;
+    await MavenHashCache.resolve(self);
     return self;
   }
 
@@ -92,6 +95,7 @@ mixin MavenArtifact {
   }
 
   Future<String> get sha1 async {
+    Logger.instance.log(FetchMavenHash(sha1Url));
     var response = await http.get(Uri.parse(sha1Url));
     if (response.statusCode != 200) {
         throw Exception('Failed to load $sha1Url');
