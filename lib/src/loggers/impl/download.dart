@@ -1,6 +1,6 @@
 import 'package:bolt_launcher/bolt_launcher.dart';
-import 'package:bolt_launcher/src/loggers/problem.dart';
-import '../install/util/remote_file.dart';
+import 'package:bolt_launcher/src/loggers/event/download.dart';
+import '../../install/util/remote_file.dart';
 
 import 'package:path/path.dart' as p;
 
@@ -12,7 +12,7 @@ class DownloadLogger {
   int downloadedSize = 0;
   int incrementalManifestCounter = 0;
   bool knownFileSizes = true;
-  List<Problem> errors = [];
+  List<FileProblem> errors = [];
   late int startTime;
   int? endTime;
 
@@ -45,14 +45,14 @@ class DownloadLogger {
     downloadedSize += bytesSize;
     if (knownFileSizes){
       processedSize += lib.size!;
-      msg += ", ${(processedSize/GlobalOptions.bytesPerMB).toStringAsFixed(0)}/${(totalSize/1000000).toStringAsFixed(0)} MB, ${(processedSize/totalSize*100).toStringAsFixed(1)}%";
+      msg += ", ${(processedSize/GlobalOptions.bytesPerMB).toStringAsFixed(0)}/${(totalSize/GlobalOptions.bytesPerMB).toStringAsFixed(0)} MB, ${(processedSize/totalSize*100).toStringAsFixed(1)}%";
     } 
     msg += ") ${lib.url}";
     
     log(msg);
   }
 
-  void failed(RemoteFile lib, Problem problem){
+  void failed(RemoteFile lib, FileProblem problem){
     log(problem.message);
     errors.add(problem);
     processedFileCount++;

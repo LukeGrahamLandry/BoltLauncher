@@ -4,8 +4,8 @@ import 'dart:io';
 import 'package:bolt_launcher/bolt_launcher.dart';
 import 'package:bolt_launcher/src/data/cache.dart';
 import 'package:bolt_launcher/src/install/util/downloader.dart';
-import 'package:bolt_launcher/src/loggers/install.dart';
-import 'package:bolt_launcher/src/loggers/problem.dart';
+import 'package:bolt_launcher/src/loggers/event/forge.dart';
+import 'package:bolt_launcher/src/loggers/event/install.dart';
 import 'package:bolt_launcher/src/api_models/forge_metadata.dart' as forge;
 import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart' as v;
 import 'package:bolt_launcher/src/install/util/remote_file.dart';
@@ -13,27 +13,30 @@ import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as p;
 import 'package:archive/archive_io.dart';
 
+import '../../loggers/logger.dart';
+
 class ForgeInstaller extends GameInstaller {
   late List<RemoteFile> gameLibs;
 
-  ForgeInstaller(String minecraftVersion, String loaderVersion) : super(minecraftVersion, loaderVersion){
-    logger = InstallLogger("forge", minecraftVersion);
-  }
+  ForgeInstaller(String minecraftVersion, String loaderVersion) : super(minecraftVersion, loaderVersion);
+
+  @override
+  String get modLoader => "forge";
 
   @override
   Future<bool> install() async {
-    logger.start();
+    log(StartInstall());
     await installVanilla();
     
     bool foundInstaller = await extractInstallerMetadata(minecraftVersion, loaderVersion!);
     if (!foundInstaller){
-      logger.failed(VersionProblem(minecraftVersion, loaderVersion: loaderVersion));
+      log(VersionNotFound());
       return false;
     }
     await downloadLibraries();
     await ForgeProcessors(minecraftVersion, loaderVersion!).runAll();
 
-    logger.end();
+    log(EndInstall());
     return true;
   }
 
@@ -47,8 +50,8 @@ class ForgeInstaller extends GameInstaller {
     if (downloadHelper.errors.isNotEmpty) return false;
 
     Archive zipped = ZipDecoder().decodeBytes(await File(officialForgeInstaller.fullPath).readAsBytes());
-    await File(p.join(Locations.metadataCacheDirectory, "forge/$loaderVersion-install_profile.json"))..createSync(recursive: true)..writeAsBytes(zipped.findFile("install_profile.json")!.content);
-    await File(p.join(Locations.metadataCacheDirectory, "forge/$minecraftVersion-forge-$loaderVersion.json"))..createSync(recursive: true)..writeAsBytes(zipped.findFile("version.json")!.content);
+    File(p.join(Locations.metadataCacheDirectory, "forge/$loaderVersion-install_profile.json"))..createSync(recursive: true)..writeAsBytes(zipped.findFile("install_profile.json")!.content);
+    File(p.join(Locations.metadataCacheDirectory, "forge/$minecraftVersion-forge-$loaderVersion.json"))..createSync(recursive: true)..writeAsBytes(zipped.findFile("version.json")!.content);
 
     return true;
   }
@@ -61,11 +64,11 @@ class ForgeInstaller extends GameInstaller {
     v.VersionFiles launchData = await MetadataCache.forgeVersionData(minecraftVersion, loaderVersion!);
     gameLibs = List.of(launchData.libraries.map((e) => e.downloads.artifact)); // needed for launcher
     DownloadHelper downloadHelper = DownloadHelper(processorLibs + gameLibs);
-    logger.startDownload(downloadHelper);
     await downloadHelper.downloadAll();
   }
 }
 
+// TODO: implement logger callbacks
 class ForgeProcessors {
   String minecraftVersion;
   String loaderVersion;
@@ -77,7 +80,7 @@ class ForgeProcessors {
   ForgeProcessors(this.minecraftVersion, this.loaderVersion);
 
   Future<void> runAll() async {
-    int startTime = DateTime.now().millisecondsSinceEpoch;
+    log(ForgeProcessorStartAll());
 
     profile = await MetadataCache.forgeInstallProfile(minecraftVersion, loaderVersion);
     data = await genParameters();
@@ -89,8 +92,7 @@ class ForgeProcessors {
       }
     }
 
-    int endTime = DateTime.now().millisecondsSinceEpoch;
-    print("Checked forge processors in ${(endTime - startTime) / 1000} seconds.");
+    log(ForgeProcessorEndAll());
   }
 
   // parse the 'data' field of 'install_profile.json' to get the parameters that will be passed to processor jars later
@@ -144,6 +146,8 @@ class ForgeProcessors {
       return;
     }
 
+    log(ForgeProcessorStartOne());
+
     String jar = p.join(Locations.installDirectory, "libraries", MavenArtifact.identifierToPath(processor.jar));
     String classpath = processor.classpath.map((e) => p.join(Locations.installDirectory, "libraries", MavenArtifact.identifierToPath(e))).join(":");
     classpath += ":$jar";
@@ -156,23 +160,20 @@ class ForgeProcessors {
     await stdout.addStream(processorProcessLmao.stderr);
 
     if (processor.outputs != null){
-      print("Checking processor results.");
       processor.outputs!.forEach((key, value) {
-        String fileToCheckKey = key.substring(1, key.length-1);
-        print(fileToCheckKey);
-        print(data);
-        File output = File(data[fileToCheckKey]!);
-        if (!output.existsSync()){
-          print("${output.path} not found.");
+        String fileNameKey = key.substring(1, key.length-1);
+        String hashKey = value.substring(1, value.length-1);
+        File generatedOutput = File(data[fileNameKey]!);
+        if (!generatedOutput.existsSync()){
+          log(ForgeProcessorTestFail(fileNameKey, generatedOutput.path, data[hashKey], "0"));
           return;
         }
 
-        var digest = sha1.convert(output.readAsBytesSync()).toString();
-        String hashKey = value.substring(1, value.length-1);
+        var digest = sha1.convert(generatedOutput.readAsBytesSync()).toString();
         if (digest != data[hashKey]){
-          print("FAIL: Hash mismatch, expected ${data[hashKey]} but got $digest for $fileToCheckKey (${output.path})");
+          log(ForgeProcessorTestFail(fileNameKey, generatedOutput.path, data[hashKey], digest));
         } else {
-          print("PASS: Hash matched ${output.path}");
+          log(ForgeProcessorTestPass(fileNameKey, generatedOutput.path));
         }
       });
     }
@@ -210,5 +211,10 @@ class ForgeProcessors {
       }
     }
     return args;
+  }
+
+  void log(InstallEvent event){
+    event.init("forge", minecraftVersion, loaderVersion);
+    Logger.instance.log(event);
   }
 }

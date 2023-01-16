@@ -5,8 +5,8 @@ import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart';
 import 'package:bolt_launcher/src/data/cache.dart';
 import 'package:bolt_launcher/src/install/util/downloader.dart';
 import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart' as vanilla;
-import 'package:bolt_launcher/src/loggers/launch.dart';
-import 'package:bolt_launcher/src/loggers/problem.dart';
+import 'package:bolt_launcher/src/loggers/event/launch.dart';
+import 'package:bolt_launcher/src/loggers/logger.dart';
 import 'package:bolt_launcher/src/install/util/remote_file.dart';
 
 import 'package:path/path.dart' as p;
@@ -16,7 +16,6 @@ abstract class GameLauncher {
   String minecraftVersion;
   String? loaderVersion;
   String gameDirectory;
-  late LaunchLogger logger;
   GameLauncher.create(this.minecraftVersion, this.loaderVersion, this.gameDirectory);
 
   String get classpath;
@@ -24,16 +23,22 @@ abstract class GameLauncher {
   List<String> get minecraftArgs;
   List<String> get jvmArgs;
   GameInstaller get installer;
+  String get modLoader;
 
   Future<void> checkInstallation() async {
-    installer.logger = logger.installLogger;
     await installer.install();
   }
 
   Future<Process> launch(String javaExecutable) async {
     List<String> args = [...jvmArgs, mainClass, ...minecraftArgs];
-    logger.start(javaExecutable, args);
+    log(StartGameProcess(gameDirectory, javaExecutable, args));
+    // TODO: log listens to stdout and stderr
     return Process.start(javaExecutable, args, workingDirectory: gameDirectory);
+  }
+
+  void log(LaunchEvent event){
+    event.init(modLoader, minecraftVersion, loaderVersion);
+    Logger.instance.log(event);
   }
 }
 
@@ -44,11 +49,13 @@ class VanillaLauncher extends GameLauncher {
 
   static Future<VanillaLauncher> create(String minecraftVersion, String gameDirectory, {bool doInstalledCheck = true}) async {
     VanillaLauncher self = VanillaLauncher._create(minecraftVersion, gameDirectory);
-    self.logger = LaunchLogger("vanilla", minecraftVersion, gameDirectory);
     if (doInstalledCheck) await self.checkInstallation();
     self.metadata = (await VanillaInstaller.getMetadata(minecraftVersion))!;
     return self;
   }
+
+  @override
+  String get modLoader => "vanilla";
 
   @override
   List<String> get jvmArgs {  // TODO: read from metadata

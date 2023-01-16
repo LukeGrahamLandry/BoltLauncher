@@ -11,7 +11,6 @@ import 'package:bolt_launcher/src/launch/vanilla.dart';
 import 'package:path/path.dart' as p;
 
 import '../api_models/vanilla_metadata.dart';
-import '../loggers/launch.dart';
 
 class ForgeLauncher extends GameLauncher {
   late VersionFiles metadata;
@@ -21,12 +20,14 @@ class ForgeLauncher extends GameLauncher {
 
   static Future<ForgeLauncher> create(String minecraftVersion, String loaderVersion, String gameDirectory) async {
     ForgeLauncher self = ForgeLauncher._create(minecraftVersion, loaderVersion, gameDirectory);
-    self.logger = LaunchLogger("forge", minecraftVersion, gameDirectory);
     await self.checkInstallation();
     self.metadata = await MetadataCache.forgeVersionData(minecraftVersion, loaderVersion);
     self.vanilla = await VanillaLauncher.create(minecraftVersion, gameDirectory, doInstalledCheck: false);
     return self;
   }
+
+  @override
+  String get modLoader => "forge";
   
   @override
   String get classpath {

@@ -1,6 +1,7 @@
 import 'dart:io' show File, FileMode, Link;
 import 'package:bolt_launcher/bolt_launcher.dart';
-import 'package:bolt_launcher/src/loggers/problem.dart';
+import 'package:bolt_launcher/src/loggers/event/base.dart';
+import 'package:bolt_launcher/src/loggers/logger.dart';
 import 'package:bolt_launcher/src/install/util/remote_file.dart';
 import 'package:http/http.dart';
 
@@ -11,26 +12,26 @@ import 'package:crypto/crypto.dart';
 import '../../data/cache.dart';
 import 'package:path/path.dart' as p;
 
+import '../../loggers/event/download.dart';
+
 class DownloadHelper {
   late PastDownloadManifest manifest;
-  List<Problem> get errors => logger.errors;
   List<RemoteFile> toDownload;
   late Client httpClient;
-  late DownloadLogger logger;
   late List<String> localSearchLocations;
+  List<FileProblem> errors = [];
 
   DownloadHelper(this.toDownload, {List<String>? localSearchLocations}) {
-    setLogger(DownloadLogger());
     this.localSearchLocations = localSearchLocations ?? [];
   }
 
-  void setLogger(DownloadLogger logger){
-    this.logger = logger;
-    logger.init(toDownload);
+  void log(Event event){
+    if (event is FileProblem) errors.add(event);
+    Logger.instance.log(event);
   }
 
   Future<void> downloadAll() async {
-    logger.start();
+    log(StartDownload(toDownload));
     manifest = await PastDownloadManifest.open();
     httpClient = Client();
 
@@ -40,12 +41,12 @@ class DownloadHelper {
     
     httpClient.close();
     await manifest.close();
-    logger.end();
+    log(EndDownload());
   }
   
   Future<bool> downloadLibrary(RemoteFile lib) async {
     if (await isCached(lib)){
-      logger.cached(lib);
+      log(FoundCached(lib));
       return true;
     }
 
@@ -75,8 +76,7 @@ class DownloadHelper {
           addToManifestCache(lib);
         }
         
-        logger.foundWellKnown(lib, wellKnownInstall);
-        
+        log(FoundWellKnown(lib, wellKnownInstall));
         return true;
       } 
     }
@@ -84,7 +84,7 @@ class DownloadHelper {
     Request request = Request("get", Uri.parse(lib.url));
 
     StreamedResponse? response;
-    Problem? finalProblem;
+    FileProblem? finalProblem;
     
     // retry 20 times
     for (int i=0; i<20; i++){
@@ -93,19 +93,19 @@ class DownloadHelper {
         finalProblem = null;
         break;
       } catch (e) {
-        finalProblem = HttpProblem(e.toString(), lib.url);
+        finalProblem = HttpProblem(lib, e.toString());
         await Future.delayed(const Duration(milliseconds: 50));
       }
     }
 
     if (finalProblem != null){
-      logger.failed(lib, finalProblem);
+      log(finalProblem);
       return false;
     } else if (response == null){  // i dont think this is possible without finalProblem being non-null above
-      logger.failed(lib, HttpProblem("null response", lib.url));
+      log(HttpProblem(lib, "null response"));
       return false;
     } else if (response.statusCode != 200){
-      logger.failed(lib, HttpProblem("Status code ${response.statusCode}", lib.url));
+      log(HttpProblem(lib, "Status code ${response.statusCode}"));
       return false;
     }
 
@@ -119,7 +119,7 @@ class DownloadHelper {
       hashInput.add(part);
       fileSink.add(part);
       progressLength += part.length;
-      logger.downloading(lib, progressLength, totalLength);
+      log(DownloadProgress(lib, progressLength, totalLength));
     }
 
     fileSink.close();
@@ -127,12 +127,12 @@ class DownloadHelper {
     var digest = hashOutput.events.single;
     if (digest.toString() != lib.sha1){
       targetFile.delete();
-      logger.failed(lib, HashProblem(lib.sha1, digest.toString(), lib.url));
+      log(HashProblem(lib, digest.toString(), lib.url));
       return false;
     }
 
     addToManifestCache(lib);
-    logger.downloaded(lib, await targetFile.length());
+    log(DownloadedFile(lib, await targetFile.length()));
 
     await manifest.quickSave();
 
@@ -153,7 +153,7 @@ class DownloadHelper {
 
     bool matchesManifest = manifestHash == lib.sha1;
     if (!matchesManifest && manifestHash != null){
-      logger.expectedHashChanged(lib, manifestHash);
+      log(ExpectedHashChanged(lib, manifestHash));
     }
 
     if (GlobalOptions.recomputeHashesBeforeLaunch || manifestHash == null){

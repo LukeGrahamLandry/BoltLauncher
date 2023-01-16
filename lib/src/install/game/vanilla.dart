@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'dart:io' show Directory, File, Platform;
-import 'package:archive/archive_io.dart';
 import 'package:bolt_launcher/bolt_launcher.dart';
 import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart';
 import 'package:bolt_launcher/src/data/cache.dart';
 import 'package:bolt_launcher/src/install/util/downloader.dart';
 import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart' as vanilla;
-import 'package:bolt_launcher/src/loggers/install.dart';
-import 'package:bolt_launcher/src/loggers/problem.dart';
+import 'package:bolt_launcher/src/loggers/event/base.dart';
+import 'package:bolt_launcher/src/loggers/event/install.dart';
+import 'package:bolt_launcher/src/loggers/logger.dart';
 import 'package:bolt_launcher/src/install/util/remote_file.dart';
 
 import 'package:path/path.dart' as p;
@@ -19,36 +19,41 @@ void installVanilla(String versionId) async {
 abstract class GameInstaller {
   String minecraftVersion;
   String? loaderVersion;
-  late InstallLogger logger;
+  String get modLoader;
   GameInstaller(this.minecraftVersion, this.loaderVersion);
 
   Future<bool> install();
 
   Future<bool> installVanilla() async {
     VanillaInstaller vanillaInstaller = VanillaInstaller(minecraftVersion);
-    vanillaInstaller.logger = logger.vanillaTracker!;
     return await vanillaInstaller.install();
+  }
+
+  void log(InstallEvent event){
+    event.init(modLoader, minecraftVersion, loaderVersion);
+    Logger.instance.log(event);
   }
 }
 
 class VanillaInstaller extends GameInstaller {
-	VanillaInstaller(String versionId) : super(versionId, null){
-    logger = InstallLogger("vanilla", minecraftVersion);
-  }
+	VanillaInstaller(String versionId) : super(versionId, null);
+
+  @override
+  String get modLoader => "vanilla";
 
   @override
 	Future<bool> install() async {
-    logger.start();
+    log(StartInstall());
 
 		var metadata = await getMetadata(minecraftVersion);
     if (metadata == null){
-      logger.failed(VersionProblem(minecraftVersion));
+     log(VersionNotFound());
 			return false;
 		}
 
 		await download(metadata);
 
-    logger.end();
+    log(EndInstall());
     return true;
 	}
 
@@ -67,11 +72,9 @@ class VanillaInstaller extends GameInstaller {
 
 	Future<void> download(vanilla.VersionFiles data) async {
     DownloadHelper jarDownloadHelper = DownloadHelper(constructLibraries(data, minecraftVersion));
-    logger.startDownload(jarDownloadHelper);
     await jarDownloadHelper.downloadAll();
 
     DownloadHelper assetDownloadHelper = AssetsDownloadHelper(await constructAssets(data), data.assetIndex!.sha1);
-    logger.startDownload(assetDownloadHelper);
     await assetDownloadHelper.downloadAll();
 	}
 

@@ -4,7 +4,6 @@ import 'dart:math';
 
 import 'package:bolt_launcher/bolt_launcher.dart';
 import 'package:bolt_launcher/src/install/game/fabric.dart';
-import 'package:bolt_launcher/src/loggers/launch.dart';
 import 'package:path/path.dart' as p;
 import 'package:bolt_launcher/src/api_models/fabric_metadata.dart' as fabric;
 
@@ -16,12 +15,14 @@ class FabricLauncher extends GameLauncher with FabricInstallerSettings {
 
   static Future<FabricLauncher> create(String minecraftVersion, String loaderVersion, String gameDirectory) async {
     FabricLauncher self = FabricLauncher.innerCreate(minecraftVersion, loaderVersion, gameDirectory);
-    self.logger = LaunchLogger(self.loaderName.toLowerCase(), minecraftVersion, gameDirectory);
     await self.checkInstallation();
     self.metadata = await self.versionFilesMetadata(minecraftVersion, loaderVersion);
     self.vanilla = await VanillaLauncher.create(minecraftVersion, gameDirectory, doInstalledCheck: false);
     return self;
   }
+
+  @override
+  String get modLoader => loaderName.toLowerCase();
   
   @override
   String get classpath {

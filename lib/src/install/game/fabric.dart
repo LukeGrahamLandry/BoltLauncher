@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io' show File, Platform;
-import 'package:bolt_launcher/src/loggers/install.dart';
-import 'package:bolt_launcher/src/loggers/problem.dart';
+import 'package:bolt_launcher/src/loggers/event/install.dart';
 import 'package:bolt_launcher/src/install/util/remote_file.dart';
 import 'package:path/path.dart' as p;
 
@@ -21,30 +20,30 @@ mixin FabricInstallerSettings {
 }
 
 class FabricInstaller extends GameInstaller with FabricInstallerSettings {
-  FabricInstaller(String minecraftVersion, String loaderVersion) : super(minecraftVersion, loaderVersion){
-    logger = InstallLogger(loaderName.toLowerCase(), minecraftVersion);
-  }
+  FabricInstaller(String minecraftVersion, String loaderVersion) : super(minecraftVersion, loaderVersion);
+
+  @override
+  String get modLoader => loaderName.toLowerCase();
 
   @override
   Future<bool> install() async {
-    logger.start();
+    log(StartInstall());
     await installVanilla();
 
     var metadata = await getMetadata();
     if (metadata == null){
-			logger.failed(VersionProblem(minecraftVersion, loaderVersion: loaderVersion));
+			log(VersionNotFound());
 			return false;
 		}
 
     await download(metadata);
 
-    logger.end();
+    log(EndInstall());
     return true;
   }
 
   Future<void> download(fabric.VersionFiles data) async {
     DownloadHelper downloadHelper = DownloadHelper(await constructLibraries(data));
-    logger.startDownload(downloadHelper);
     await downloadHelper.downloadAll();
   }
 
@@ -53,7 +52,7 @@ class FabricInstaller extends GameInstaller with FabricInstallerSettings {
     allLibs.addAll(data.launcherMeta.libraries.client);
     allLibs.add(fabric.LibraryLocation(data.loader.maven, "$defaultMavenUrl/"));
 
-    logger.loadMavenHashes(allLibs.length);
+    log(LoadMavenHashes(allLibs.length));
     List<RemoteFile> toDownload = await Future.wait(allLibs.map((lib) => lib.lib));
     return toDownload;
   }
