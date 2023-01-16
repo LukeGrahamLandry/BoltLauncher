@@ -1,4 +1,16 @@
 
+## 23.01.14-dev
+
+- find curseforge profiles and can launch from their directory
+
+## 23.01.12-dev
+
+- testing 1.18.2-1.13.2, only works with rosetta
+
+## 23.01.09-dev
+
+- integration test that launches the game for all supported loader/version combinations in sequence 
+
 ## 23.01.08-dev
 
 - find existing java installations
@@ -27,7 +39,7 @@
 ## 23.01.02-dev
 
 - launch the game
-- download natives (TODO: extract, pre 1.19)
+- download natives 
 - async downloading (faster)
 - check hashes of downloaded files
 - download mods from cursemaven

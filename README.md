@@ -38,7 +38,7 @@ BoltLauncher is designed to be easily configured to your project's branding. See
 
 ### Tests
 
-Output is saved at `DATA_LOCATION/logs/tests/NAME.txt`
+Results are saved at `DATA_LOCATION/logs/tests/NAME.txt`
 
 - `dart run tests/supported_versions.dart`
     - installs and launches the game for every supported version in sequence
