@@ -45,7 +45,7 @@ class DownloadLogger {
     downloadedSize += bytesSize;
     if (knownFileSizes){
       processedSize += lib.size!;
-      msg += ", ${(processedSize/GlobalOptions.bytesPerMB).toStringAsFixed(0)}/${(totalSize/1000000).toStringAsFixed(0)} MB, ${(processedSize/totalSize*100).toStringAsFixed(1)}%";
+      msg += ", ${(processedSize/GlobalOptions.bytesPerMB).toStringAsFixed(0)}/${(totalSize/GlobalOptions.bytesPerMB).toStringAsFixed(0)} MB, ${(processedSize/totalSize*100).toStringAsFixed(1)}%";
     } 
     msg += ") ${lib.url}";
     

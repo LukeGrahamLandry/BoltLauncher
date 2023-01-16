@@ -52,6 +52,7 @@ class FabricInstaller extends GameInstaller with FabricInstallerSettings {
     List<fabric.LibraryLocation> allLibs = [...data.launcherMeta.libraries.common];
     allLibs.addAll(data.launcherMeta.libraries.client);
     allLibs.add(fabric.LibraryLocation(data.loader.maven, "$defaultMavenUrl/"));
+    allLibs.add(fabric.LibraryLocation(data.intermediary.maven, "$defaultMavenUrl/"));
 
     logger.loadMavenHashes(allLibs.length);
     List<RemoteFile> toDownload = await Future.wait(allLibs.map((lib) => lib.lib));

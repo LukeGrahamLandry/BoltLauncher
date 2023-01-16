@@ -20,6 +20,7 @@ class InstallLogger {
     }
   }
 
+  // TODO: gets called twice. one for the mod loader, one for the vanilla. so the vanilla logger should be set to a silent one for start and end methods.
   void start(){
     log("Checking installation...");
     startTime = DateTime.now().millisecondsSinceEpoch;

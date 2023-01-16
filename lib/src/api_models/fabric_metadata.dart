@@ -22,8 +22,8 @@ class VanillaVersion {
 
 @JsonSerializable(explicitToJson: true)
 class LoaderVerson {
-  String separator;
-  int build;
+  String? separator;
+  int? build;
   String maven;
   String version;
   bool? stable;
@@ -49,9 +49,10 @@ class VersionList {
 @JsonSerializable(explicitToJson: true)
 class VersionFiles {
   LoaderVerson loader;
+  LoaderVerson intermediary;
   LauncherInfo launcherMeta;
 
-  VersionFiles(this.loader, this.launcherMeta);
+  VersionFiles(this.loader, this.launcherMeta, this.intermediary);
 
   factory VersionFiles.fromJson(Map<String, dynamic> json) => _$VersionFilesFromJson(json);
   Map<String, dynamic> toJson() => _$VersionFilesToJson(this);

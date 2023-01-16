@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:bolt_launcher/src/api_models/java_metadata.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:path/path.dart' as p;
 import 'package:http/http.dart' as http;
@@ -84,6 +85,20 @@ class MetadataCache {
     if (!(await file.exists())) await ForgeInstaller.extractInstallerMetadata(minecraftVersion, loaderVersion);
     return vanilla.VersionFiles.fromJson(json.decode(await file.readAsString()));
   }
+
+  static Future<List<JavaInfo>> get localJavaInstalls async {
+    File file = File(p.join(Locations.metadataCacheDirectory, "java.json"));
+    if (!(await file.exists())) return [];
+
+    List<JavaInfo> results = [];
+    try {
+      json.decode(await file.readAsString()).forEach((e) => results.add(JavaInfo.fromJson(e)));
+    } catch (e) {
+      return [];
+    }
+    
+    return results;
+  }
 }
 
 Future<Map<String, dynamic>> cachedFetchJson(String url, String filename) async {
@@ -113,8 +128,6 @@ Future<String> cachedFetchText(String url, String filename) async {
     }
 
     String result = await file.readAsString();
-    // print(url);
-    // print(result);
     return result;
 }
 
@@ -125,7 +138,14 @@ Future<Map<String, dynamic>> jsonObjectFile(String path, Map<String, dynamic> de
         await writeJsonObjectFile(path, defaultData);
     }
 
-    return jsonDecode(await file.readAsString());
+    String data = await file.readAsString();
+    try {
+      return jsonDecode(data);
+    } catch (e) {
+      print("Failed to parse $path as json");
+      await writeJsonObjectFile(path, defaultData);
+      return defaultData;
+    }
 }
 
 Future<void> writeJsonObjectFile(String path, Map<String, dynamic> data) async {
@@ -135,4 +155,3 @@ Future<void> writeJsonObjectFile(String path, Map<String, dynamic> data) async {
     }
     file.writeAsString(JsonEncoder.withIndent('  ').convert(data));
 }
-

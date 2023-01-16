@@ -159,8 +159,6 @@ class ForgeProcessors {
       print("Checking processor results.");
       processor.outputs!.forEach((key, value) {
         String fileToCheckKey = key.substring(1, key.length-1);
-        print(fileToCheckKey);
-        print(data);
         File output = File(data[fileToCheckKey]!);
         if (!output.existsSync()){
           print("${output.path} not found.");

@@ -3,19 +3,24 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:bolt_launcher/bolt_launcher.dart';
+import 'package:bolt_launcher/src/data/cache.dart';
 import 'package:path/path.dart' as path;
 import 'package:bolt_launcher/src/api_models/java_metadata.dart';
 
 class JavaFinder {
+  static List<JavaInfo>? oldFound;
+
   static Future<List<JavaInfo>> search() async {
+    List<JavaInfo> cached = await MetadataCache.localJavaInstalls;
+    if (cached.isNotEmpty) return cached;
+
     int startTime = DateTime.now().millisecondsSinceEpoch;
     List<JavaInfo> found = (await Future.wait((await findBinaries()).map((binary) async {
       return await getJavaInfo(binary);
     }))).expand((x) => x).toList();
-    int endTime = DateTime.now().millisecondsSinceEpoch;
-    
-    print("Found ${found.length} java installations in ${(endTime - startTime) / 1000} seconds.");
     File(path.join(Locations.metadataCacheDirectory, "java.json"))..createSync(recursive: true)..writeAsStringSync(JsonEncoder.withIndent('  ').convert(found));
+    
+    oldFound = found;
     return found;
   }
 
