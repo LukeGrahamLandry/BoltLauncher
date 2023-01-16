@@ -122,11 +122,11 @@ class DownloadHelper {
       log(DownloadProgress(lib, progressLength, totalLength));
     }
 
-    fileSink.close();
+    await fileSink.close();
     hashInput.close();
     var digest = hashOutput.events.single;
     if (digest.toString() != lib.sha1){
-      targetFile.delete();
+      await targetFile.delete();
       log(HashProblem(lib, digest.toString(), lib.url));
       return false;
     }
@@ -135,11 +135,6 @@ class DownloadHelper {
     log(DownloadedFile(lib, await targetFile.length()));
 
     await manifest.quickSave();
-
-    if (RemoteFile.isCode(lib)){
-      // TODO: some sort of locking
-      await File(p.join(Locations.dataDirectory, "executables-download-history.csv")).writeAsString("${DateTime.now()},${lib.url},${lib.sha1}\n", mode: FileMode.append);
-    }
 
     return true;
   }

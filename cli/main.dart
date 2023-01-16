@@ -17,16 +17,19 @@ import 'commands/install.dart';
 import 'commands/profiles.dart';
 
 Future<void> main(List<String> arguments) async {
-  await MavenHashCache.load();
+  await loadAllCaches();
   await run(arguments);
-  await MavenHashCache.save();
+  await saveAllCaches();
+
+  // this may want to delete metadata so should happen after the files are saved again. 
+  if (arguments[0] == "clear") await clearCommand(arguments);
 }
 
 Future<void> run(List<String> arguments) async {
   String program = arguments.isEmpty ? "help" : arguments[0];
 
   if (program == "java"){
-    File cache = File(p.join(Locations.metadataCacheDirectory, "java.json"));
+    File cache = File(Locations.javaInstallationsList);
     if (cache.existsSync()) cache.deleteSync();
 
     int startTime = DateTime.now().millisecondsSinceEpoch;
@@ -52,7 +55,7 @@ Future<void> run(List<String> arguments) async {
   }
 
   if (program == "mod") {
-    downloadFromCurseMaven("267602", "2642375", "instance/mods");
+    await downloadFromCurseMaven("267602", "2642375", "instance/mods");
     return;
   }
 
@@ -68,7 +71,6 @@ Future<void> run(List<String> arguments) async {
       return;
   }
 
-  if (program == "clear" && arguments[1] == "confirm") await clearCommand(arguments);
   if (program == "install") await installCommand(arguments);
 }
 

@@ -66,6 +66,8 @@ mixin MavenArtifact {
     _repo = repo;
   }
 
+  String get descriptor => _identifier;
+
   String get path => identifierToPath(_identifier);
 
   static String identifierToPath(String identifier){

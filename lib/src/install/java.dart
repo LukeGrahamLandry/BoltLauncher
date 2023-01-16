@@ -8,8 +8,6 @@ import 'package:path/path.dart' as path;
 import 'package:bolt_launcher/src/api_models/java_metadata.dart';
 
 class JavaFinder {
-  static List<JavaInfo>? oldFound;
-
   static Future<List<JavaInfo>> search() async {
     List<JavaInfo> cached = await MetadataCache.localJavaInstalls;
     if (cached.isNotEmpty) return cached;
@@ -18,9 +16,11 @@ class JavaFinder {
     List<JavaInfo> found = (await Future.wait((await findBinaries()).map((binary) async {
       return await getJavaInfo(binary);
     }))).expand((x) => x).toList();
-    File(path.join(Locations.metadataCacheDirectory, "java.json"))..createSync(recursive: true)..writeAsStringSync(JsonEncoder.withIndent('  ').convert(found));
     
-    oldFound = found;
+    File cache = File(Locations.javaInstallationsList);
+    await cache.create(recursive: true);
+    await cache.writeAsString(JsonEncoder.withIndent('  ').convert(found));
+    
     return found;
   }
 

@@ -43,7 +43,7 @@ Future<void> installMinecraft(String loader, String version, bool hashChecking) 
   LoaderMeta? loaderInfo = VersionListHelper.modLoaders[loader];
 
   if (loaderInfo == null){
-    print("Sorry, '$loader' is not a recognized mod loader. Try 'vanilla', 'fabric', or 'quilt'");
+    print("Sorry, '$loader' is not a recognized mod loader. Try 'vanilla', 'quilt', 'fabric', or 'forge'");
     return;
   }
 

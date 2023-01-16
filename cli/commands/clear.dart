@@ -1,3 +1,4 @@
+import 'package:bolt_launcher/src/data/cache.dart';
 import 'package:bolt_launcher/src/data/locations.dart';
 
 import 'help.dart';
@@ -17,7 +18,8 @@ Future<void> clearCommand(List<String> arguments) async {
     await Directory(Locations.metadataCacheDirectory).delete(recursive: true);
   }
   if (args["jars"] as bool || args["all"] as bool){
-    await Directory(Locations.installDirectory).delete(recursive: true);
+    await Directory(p.join(Locations.installDirectory, "libraries")).delete(recursive: true);
+    await Directory(p.join(Locations.installDirectory, "versions")).delete(recursive: true);
   }
 }
 

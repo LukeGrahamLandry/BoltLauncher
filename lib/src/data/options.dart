@@ -9,7 +9,7 @@ import 'dart:convert';
 // maybe split commands 'bolt meta trust --key value' and 'bolt meta misc --key value'
 
 class GlobalOptions {
-  static bool recomputeHashesBeforeLaunch = true;
+  static bool recomputeHashesBeforeLaunch = true;  // TODO: unused cause i stopped using manifest cause sym links
   static bool checkHashesAfterDownload = true;
   // static bool checkSignaturesOnDownload = true;  // TODO
   // static String pgpCommand = "gpg"
@@ -18,6 +18,8 @@ class GlobalOptions {
 
   // only used for reporting download sizes. either 10^6=1000000 or 2^20=1048576 (or 10^3*2^10=1024000 if you're insane)
   static int bytesPerMB = 1000000;
+
+  static int versionListCacheSeconds = 24*60*60;
 
   // having this off only saves ~70 milliseconds but feels clever. only a problem if they go in and delete the install/assets/objects files without deleting the manifest 
   static bool reConfirmAssetsExistBeforeLaunch = false;  

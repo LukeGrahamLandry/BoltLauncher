@@ -38,4 +38,6 @@ class Locations {
   }
 
   static String get curseforgeInstances => path.join(Locations.homeDirectory, "Documents", "curseforge", "minecraft", "Instances");
+
+  static String get javaInstallationsList => path.join(Locations.metadataCacheDirectory, "java/installations.json");
 }

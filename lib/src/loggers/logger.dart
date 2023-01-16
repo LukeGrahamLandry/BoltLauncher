@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bolt_launcher/src/install/util/remote_file.dart';
 import 'package:bolt_launcher/src/loggers/event/forge.dart';
 import 'package:bolt_launcher/src/loggers/event/launch.dart';
 import 'package:bolt_launcher/src/loggers/impl/download.dart';
@@ -10,6 +11,7 @@ import 'event/base.dart';
 
 class Logger {
   static Logger instance = Logger();
+  static List<String> executablesDownloadHistory = [];
   List<DownloadLogger> downloads = [];
   
   void log(Event event){
@@ -44,6 +46,10 @@ class Logger {
 
     else if (event is DownloadedFile){
       downloads.last.downloaded(event.lib, event.bytesSize);
+
+      if (RemoteFile.isCode(event.lib)){
+        executablesDownloadHistory.add("${DateTime.now()},${event.lib.url},${event.lib.sha1}");
+      }
     }
 
     else if (event is FoundCached){
@@ -75,7 +81,7 @@ class Logger {
       installTasks[event.id]?.endTime = DateTime.now().millisecondsSinceEpoch;
       logStr("Installation check of ${event.id} finished in ${(installTasks[event.id]!.endTime! - installTasks[event.id]!.startTime) / 1000} seconds.");
     }
-    
+
     else if (event is VersionNotFound){
       logStr(event.message);
     }
