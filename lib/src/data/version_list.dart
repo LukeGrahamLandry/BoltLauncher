@@ -5,14 +5,15 @@ import 'package:bolt_launcher/src/data/cache.dart';
 import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart' as vanilla;
 import 'package:bolt_launcher/src/api_models/fabric_metadata.dart' as fabric;
 import 'package:bolt_launcher/src/api_models/prism_metadata.dart' as prism;
+import 'package:bolt_launcher/src/launch/base.dart';
 
 typedef LauncherFactory = Future<GameLauncher> Function(String minecraftVersion, String loaderVersion, String gameDirectory);
 
 abstract class LoaderMeta {
   String get name;
   Future<List<String>> get supportedMinecraftVersions => Future.value(["1.19.3", "1.19.2", "1.19.1", "1.19", "1.18.2", "1.18.1", "1.18", "1.17.1", "1.17", "1.16.5"]);
-  Future<List<String>> versions(String minecraftVersion) => hasLoaderVersions ? throw UnimplementedError() : Future.value(["0"]);
-  Future<String> recommendedVersion(String minecraftVersion) => hasLoaderVersions ? throw UnimplementedError() : Future.value("0");
+  Future<List<String>> versions(String minecraftVersion) => Future.value(["0"]);
+  Future<String> recommendedVersion(String minecraftVersion) => Future.value("0");
   bool get hasLoaderVersions => true;
   LauncherFactory get launcher;
 }

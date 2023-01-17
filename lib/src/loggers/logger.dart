@@ -107,7 +107,7 @@ class Logger {
 
   void logLaunch(LaunchEvent event){
     if (event is StartGameProcess){
-      logStr("Launching Minecraft ${event.id}");
+      logStr("Launching Minecraft ${event.id} with ${event.javaExecutable}");
     }
   }
 

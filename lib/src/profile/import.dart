@@ -30,7 +30,7 @@ Future<List<MinecraftProfile>> importCurseforgeInstance(Directory instanceFolder
   cf.MinecraftInstance instance = cf.MinecraftInstance.fromJson(jsonDecode(await info.readAsString()));
 
   String loader = "vanilla";
-  String loaderVersion = "0";
+  String? loaderVersion = "0";
   if (instance.baseModLoader != null){
     loader = instance.baseModLoader!.name.split("-")[0];
     loaderVersion = instance.baseModLoader!.forgeVersion!;  // they call the variable that even for fabric  
@@ -38,6 +38,6 @@ Future<List<MinecraftProfile>> importCurseforgeInstance(Directory instanceFolder
 
   var javaMajor = await VersionListHelper.suggestedJavaMajorVersion(instance.gameVersion);
   String jvmPath = await VersionListHelper.suggestedJavaExecutable(javaMajor);
-  MinecraftProfile result = MinecraftProfile.empty(jvmPath, loader, instance.gameVersion, loaderVersion, instanceFolder.path);
+  MinecraftProfile result = MinecraftProfile.empty(jvmPath, loader, instance.gameVersion, loaderVersion, instanceFolder.path, source: OtherLauncher.curseforge);
   return [result];
 }

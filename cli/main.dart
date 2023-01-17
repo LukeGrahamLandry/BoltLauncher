@@ -19,7 +19,7 @@ import 'commands/profiles.dart';
 Future<void> main(List<String> arguments) async {
   await loadAllCaches();
   await run(arguments);
-  await saveAllCaches();
+  await saveAllCaches();  // TODO: this should happen before launching the game process
 
   // this may want to delete metadata so should happen after the files are saved again. 
   if (arguments[0] == "clear") await clearCommand(arguments);
@@ -75,7 +75,7 @@ Future<void> run(List<String> arguments) async {
 }
 
 Future<void> testLaunchMinecraft() async {
-  String versionId = "1.16.5";
+  String versionId = "1.19.3";
   // String loaderVersion = "40.2.0";
   String gameDir = p.join(Locations.dataDirectory, "instances", "test");
   // var installer = QuiltInstaller(versionId, "0.18.1-beta.26");
@@ -83,12 +83,13 @@ Future<void> testLaunchMinecraft() async {
   Directory(gameDir).createSync(recursive: true);
 
   var logs = File("log.txt");
-  var loaderVersion = await VersionListHelper.FORGE.recommendedVersion(versionId);
-  var launcher = await ForgeLauncher.create(versionId, loaderVersion, gameDir);
+  var loaderInfo = VersionListHelper.FORGE;
+  var loaderVersion = await loaderInfo.recommendedVersion(versionId);
+  var launcher = await loaderInfo.launcher(versionId, loaderVersion, gameDir);
   var major = await VersionListHelper.suggestedJavaMajorVersion(versionId);
 
   print("Starting Minecraft...");
-  var gameProcess = await launcher.launch(major == 8 ? "/Library/Java/JavaVirtualMachines/jdk1.8.0_202.jdk/Contents/Home/bin/java" : "/Library/Java/JavaVirtualMachines/temurin-17.jre/Contents/Home/bin/java");
+  var gameProcess = await launcher.launch(versionId.startsWith("1.19") ? "java" : major == 8 ? "/Library/Java/JavaVirtualMachines/jdk1.8.0_202.jdk/Contents/Home/bin/java" : "/Library/Java/JavaVirtualMachines/temurin-17.jre/Contents/Home/bin/java");
   gameProcess.stdout.listen((data) {
     stdout.add(data);
     // logs.writeAsBytesSync(data, mode: FileMode.append);

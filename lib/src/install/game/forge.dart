@@ -50,8 +50,8 @@ class ForgeInstaller extends GameInstaller {
     if (downloadHelper.errors.isNotEmpty) return false;
 
     Archive zipped = ZipDecoder().decodeBytes(await File(officialForgeInstaller.fullPath).readAsBytes());
-    File(p.join(Locations.metadataCacheDirectory, "forge/$loaderVersion-install_profile.json"))..createSync(recursive: true)..writeAsBytes(zipped.findFile("install_profile.json")!.content);
-    File(p.join(Locations.metadataCacheDirectory, "forge/$minecraftVersion-forge-$loaderVersion.json"))..createSync(recursive: true)..writeAsBytes(zipped.findFile("version.json")!.content);
+    File(p.join(Locations.metadataCacheDirectory, "forge/$loaderVersion-install_profile.json"))..createSync(recursive: true)..writeAsBytesSync(zipped.findFile("install_profile.json")!.content);
+    File(p.join(Locations.metadataCacheDirectory, "forge/$minecraftVersion-forge-$loaderVersion.json"))..createSync(recursive: true)..writeAsBytesSync(zipped.findFile("version.json")!.content);
 
     return true;
   }

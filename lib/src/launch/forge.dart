@@ -7,6 +7,7 @@ import 'package:bolt_launcher/src/data/cache.dart';
 import 'package:bolt_launcher/src/install/game/forge.dart';
 import 'package:bolt_launcher/src/install/util/downloader.dart';
 import 'package:bolt_launcher/src/install/util/remote_file.dart';
+import 'package:bolt_launcher/src/launch/base.dart';
 import 'package:bolt_launcher/src/launch/vanilla.dart';
 import 'package:path/path.dart' as p;
 
@@ -39,40 +40,20 @@ class ForgeLauncher extends GameLauncher {
     // var jars = "${vanilla.classpath}:${DownloadHelper.toClasspath(forgeLaunchLibs)}".split(":").toSet();  // crashes
     return jars.join(":");
   }
+
+  Map<String, String> get replacements => super.replacements..addAll({
+    "\${classpath_separator}": ":",
+    "\${library_directory}": p.join(Locations.installDirectory, "libraries")
+  });
   
   @override
-  List<String> get jvmArgs {
-    List<String> args = [];
-
-    metadata.arguments.jvm.forEach((element) {
-      if (element is String){
-        element = element.replaceAll("\${library_directory}", p.join(Locations.installDirectory, "libraries"));
-        element = element.replaceAll("\${classpath_separator}", ":");
-        element = element.replaceAll("\${version_name}", minecraftVersion); 
-        args.add(element);
-      }
-    });
-
-    args.addAll([
-      "-XstartOnFirstThread",  // macos only?
-      "-Dfml.earlyprogresswindow=false",
-      // "-Djava.library.path=${p.join(Locations.installDirectory, "bin", minecraftVersion)}",
-      "-cp",
-      classpath
-    ]);
-
-    return args;
-  }
+  List<String> get jvmArgs => evalArgs(vanilla.metadata.arguments.jvm)..addAll(evalArgs(metadata.arguments.jvm));
   
   @override
   String get mainClass => metadata.mainClass;
   
   @override
-  List<String> get minecraftArgs {  // TODO: parse the map entries properly
-    List<dynamic> args = [...metadata.arguments.game];
-    args.removeWhere((element) => element is! String);
-    return [...vanilla.minecraftArgs, ...args];
-  }
+  List<String> get minecraftArgs => evalArgs(vanilla.metadata.arguments.game)..addAll(evalArgs(metadata.arguments.game));
   
   @override
   GameInstaller get installer => ForgeInstaller(minecraftVersion, loaderVersion!);

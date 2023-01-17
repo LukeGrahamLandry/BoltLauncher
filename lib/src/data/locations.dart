@@ -24,7 +24,7 @@ class Locations {
   static String get profilesFile {
     return path.join(dataDirectory, "profiles.json");
   }
-
+  
   static String get installDirectory {
     return path.join(dataDirectory, "install");
   }

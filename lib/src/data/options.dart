@@ -38,7 +38,7 @@ List<String> defaultWellKnown() {
 }
 
 class MetaSources {
-  String vanilla = "https://launchermeta.mojang.com/mc/game/version_manifest.json";
+  String vanilla = "https://launchermeta.mojang.com/mc/game/version_manifest_v2.json";
   String assets = "https://resources.download.minecraft.net";
 
   String fabric = "https://meta.fabricmc.net/v2";

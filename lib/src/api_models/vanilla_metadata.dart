@@ -115,7 +115,8 @@ class Library {
 
 @JsonSerializable(explicitToJson: true)
 class OperatingSystem {
-    String name;
+    String? name;
+    String? arch;
 
     OperatingSystem(this.name);
 
@@ -127,6 +128,7 @@ class OperatingSystem {
 class Rule {
     String action;
     OperatingSystem? os;
+    Map<String, bool>? features;
 
     Rule(this.action, this.os);
 

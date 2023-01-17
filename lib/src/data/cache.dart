@@ -135,7 +135,8 @@ Future<String> cachedFetchText(String url, String filename, Duration? cacheTime)
 
         sources[filename] = {
           "url": url,
-          "time": DateTime.now().millisecondsSinceEpoch
+          "time": DateTime.now().millisecondsSinceEpoch,
+          "sha1": sha1.convert(response.bodyBytes).toString()
         };
 
         await appendJsonObjectFile(sourcesPath, sources);

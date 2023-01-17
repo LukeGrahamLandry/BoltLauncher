@@ -6,6 +6,7 @@ import 'package:bolt_launcher/bolt_launcher.dart';
 import 'package:bolt_launcher/src/install/game/fabric.dart';
 import 'package:path/path.dart' as p;
 import 'package:bolt_launcher/src/api_models/fabric_metadata.dart' as fabric;
+import 'package:bolt_launcher/src/launch/base.dart';
 
 class FabricLauncher extends GameLauncher with FabricInstallerSettings {
   late VanillaLauncher vanilla;
@@ -38,16 +39,11 @@ class FabricLauncher extends GameLauncher with FabricInstallerSettings {
   GameInstaller get installer => FabricInstaller(minecraftVersion, loaderVersion!);
   
   @override
-  List<String> get jvmArgs => [
-      "-XstartOnFirstThread",  // macos only?
-      // "-Djava.library.path=${p.join(Locations.installDirectory, "bin", minecraftVersion)}",
-      "-cp",
-      classpath
-    ];
+  List<String> get jvmArgs => evalArgs(vanilla.metadata.arguments.jvm);
   
   @override
   String get mainClass => metadata.launcherMeta.mainClass.client;
   
   @override
-  List<String> get minecraftArgs => vanilla.minecraftArgs;
+  List<String> get minecraftArgs => evalArgs(vanilla.metadata.arguments.game);
 }
