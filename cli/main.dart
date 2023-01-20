@@ -75,7 +75,7 @@ Future<void> run(List<String> arguments) async {
 }
 
 Future<void> testLaunchMinecraft() async {
-  String versionId = "1.19.3";
+  String versionId = "1.16.5";
   // String loaderVersion = "40.2.0";
   String gameDir = p.join(Locations.dataDirectory, "instances", "test");
   // var installer = QuiltInstaller(versionId, "0.18.1-beta.26");
@@ -83,13 +83,13 @@ Future<void> testLaunchMinecraft() async {
   Directory(gameDir).createSync(recursive: true);
 
   var logs = File("log.txt");
-  var loaderInfo = VersionListHelper.FORGE;
+  var loaderInfo = VersionListHelper.FABRIC;
   var loaderVersion = await loaderInfo.recommendedVersion(versionId);
   var launcher = await loaderInfo.launcher(versionId, loaderVersion, gameDir);
   var major = await VersionListHelper.suggestedJavaMajorVersion(versionId);
 
   print("Starting Minecraft...");
-  var gameProcess = await launcher.launch(versionId.startsWith("1.19") ? "java" : major == 8 ? "/Library/Java/JavaVirtualMachines/jdk1.8.0_202.jdk/Contents/Home/bin/java" : "/Library/Java/JavaVirtualMachines/temurin-17.jre/Contents/Home/bin/java");
+  var gameProcess = await launcher.launch(await VersionListHelper.suggestedJava(versionId, loaderInfo.name));
   gameProcess.stdout.listen((data) {
     stdout.add(data);
     // logs.writeAsBytesSync(data, mode: FileMode.append);

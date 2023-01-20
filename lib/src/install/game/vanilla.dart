@@ -5,10 +5,12 @@ import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart';
 import 'package:bolt_launcher/src/data/cache.dart';
 import 'package:bolt_launcher/src/install/util/downloader.dart';
 import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart' as vanilla;
+import 'package:bolt_launcher/src/install/util/meta_modifier.dart';
 import 'package:bolt_launcher/src/loggers/event/base.dart';
 import 'package:bolt_launcher/src/loggers/event/install.dart';
 import 'package:bolt_launcher/src/loggers/logger.dart';
 import 'package:bolt_launcher/src/install/util/remote_file.dart';
+import 'package:crypto/crypto.dart';
 
 import 'package:path/path.dart' as p;
 
@@ -25,7 +27,7 @@ abstract class GameInstaller {
   Future<bool> install();
 
   Future<bool> installVanilla() async {
-    VanillaInstaller vanillaInstaller = VanillaInstaller(minecraftVersion);
+    VanillaInstaller vanillaInstaller = VanillaInstaller(minecraftVersion, realLoader: modLoader);
     return await vanillaInstaller.install();
   }
 
@@ -36,7 +38,8 @@ abstract class GameInstaller {
 }
 
 class VanillaInstaller extends GameInstaller {
-	VanillaInstaller(String versionId) : super(versionId, null);
+  String realLoader;
+	VanillaInstaller(String versionId, {this.realLoader = "vanilla"}) : super(versionId, null);
 
   @override
   String get modLoader => "vanilla";
@@ -51,11 +54,16 @@ class VanillaInstaller extends GameInstaller {
 			return false;
 		}
 
+    lwjglArmNatives(minecraftVersion, realLoader, metadata);
 		await download(metadata);
 
     log(EndInstall());
     return true;
 	}
+
+  void check(Artifact lib){
+
+  }
 
   static Future<vanilla.VersionFiles?> getMetadata(String versionId) async {
     vanilla.VersionList versionData = await MetadataCache.vanillaVersions;
@@ -121,15 +129,19 @@ class VanillaInstaller extends GameInstaller {
   static bool ruleMatches(List<vanilla.Rule>? rules){
     if (rules == null) return true;
 
+    bool result = true;
+
     for (var rule in rules){
+      String? os = rule.os?.name;
+      // TODO: arch
       if (rule.action == "allow"){
-        // TODO
-        String? os = rule.os?.name;
-        if (os != null && !getOS().contains(os)) return false;
+        result = result && (os == null || getOS().contains(os));
+      } else if (rule.action == "disallow"){
+        if (os != null && getOS().contains(os)) result = false;
       }
 
     }
-    return true;
+    return result;
   }
 }
 

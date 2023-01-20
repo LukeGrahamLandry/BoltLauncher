@@ -27,7 +27,7 @@ abstract class FileProblem extends RemoteFileEvent implements Problem {
 }
 
 class HashProblem extends FileProblem {
-  String get wanted => lib.sha1;
+  String? get wanted => lib.sha1;
   String got;
   String url;
 

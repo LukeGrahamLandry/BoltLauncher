@@ -5,6 +5,7 @@ import 'package:bolt_launcher/src/data/cache.dart';
 import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart' as vanilla;
 import 'package:bolt_launcher/src/api_models/fabric_metadata.dart' as fabric;
 import 'package:bolt_launcher/src/api_models/prism_metadata.dart' as prism;
+import 'package:bolt_launcher/src/install/util/meta_modifier.dart';
 import 'package:bolt_launcher/src/launch/base.dart';
 
 typedef LauncherFactory = Future<GameLauncher> Function(String minecraftVersion, String loaderVersion, String gameDirectory);
@@ -31,14 +32,22 @@ class VersionListHelper {
     "forge": FORGE
   };
 
-  static Future<int> suggestedJavaMajorVersion(String minecraftVersion) async {  // TODO: should read from metadata
+  static int suggestedJavaMajorVersion(String minecraftVersion) {  // TODO: should read from metadata
     int mcMinorVersion = int.parse(minecraftVersion.split(".")[1]);
     return mcMinorVersion > 16 ? 17 : 8;  
   }
 
-  static Future<String> suggestedJavaExecutable(int majorVersion) async {  // TODO: check architecture 
-    List<JavaInfo> installations = await JavaFinder.search();  // TODO fix arch 
-    return installations.firstWhere((element) => element.majorVersion == majorVersion && element.architexture == "x86_64").executablePath;
+  static Future<String> suggestedJavaExecutable(int majorVersion, {String? arch}) async {  // TODO: check architecture 
+    List<JavaInfo> installations = await JavaFinder.search();
+    // TODO: how to check the computer's arch
+    return installations.firstWhere((element) => element.majorVersion == majorVersion && (arch == null || element.architexture == arch)).executablePath;
+  }
+
+  static Future<String> suggestedJava(String minecraftVersion, String loader) async {
+    int major = suggestedJavaMajorVersion(minecraftVersion);
+    // TODO: how to check the computer's arch
+    String arch = supportsAppleSilicon(minecraftVersion, loader) ? "aarch64" : "x86_64";
+    return suggestedJavaExecutable(major, arch: arch);
   }
 }
 

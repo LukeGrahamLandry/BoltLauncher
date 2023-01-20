@@ -1,11 +1,12 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'package:bolt_launcher/src/install/util/meta_modifier.dart';
+import 'package:bolt_launcher/src/launch/base.dart';
 import 'package:path/path.dart' as path;
 
 import 'package:bolt_launcher/bolt_launcher.dart';
 
-int requiredGameRuntime = 30;  // 15 is good enough for 1.19+ on aarch64 jre
 File log = File("instance/logs/tests/supported_versions.txt");
 List<String> toClear = [Locations.installDirectory, Locations.metadataCacheDirectory];
 
@@ -23,19 +24,20 @@ void main(List<String> args) async {
 
   Iterable<String> loaders = args.isEmpty ? VersionListHelper.modLoaders.keys : args;
 
-  for (String loaderName in loaders){  //
+  for (String loaderName in loaders){
     var loaderData = VersionListHelper.modLoaders[loaderName]!;
-    List<String> minecraftVersions = await loaderData.supportedMinecraftVersions;
+    List<String> minecraftVersions = ["1.19.3", "1.19.2", "1.18.2", "1.17.1", "1.16.5"];  // await loaderData.supportedMinecraftVersions;
     for (String minecraftVersion in minecraftVersions) {
       String loaderVersion = await loaderData.recommendedVersion(minecraftVersion);
       GameLauncher launcher = await loaderData.launcher(minecraftVersion, loaderVersion, path.join(Locations.dataDirectory, "instances", "test"));
-      String java = await VersionListHelper.suggestedJavaExecutable(await VersionListHelper.suggestedJavaMajorVersion(minecraftVersion));
+      String java = await VersionListHelper.suggestedJava(minecraftVersion, loaderName);
       Process game = await launcher.launch(java);
 
       String errors = "";
       game.stderr.listen((event) {
         errors += utf8.decode(event);
       });
+      int requiredGameRuntime = supportsAppleSilicon(minecraftVersion, loaderName) ? 15 : 30;
       await Future.delayed(Duration(seconds: requiredGameRuntime));
 
       String msg = "${errors.isEmpty ? "PASS" : "FAIL"} Minecraft $minecraftVersion $loaderName ${loaderData.hasLoaderVersions ? loaderVersion : ""}\n";

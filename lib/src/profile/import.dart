@@ -36,8 +36,7 @@ Future<List<MinecraftProfile>> importCurseforgeInstance(Directory instanceFolder
     loaderVersion = instance.baseModLoader!.forgeVersion!;  // they call the variable that even for fabric  
   }
 
-  var javaMajor = await VersionListHelper.suggestedJavaMajorVersion(instance.gameVersion);
-  String jvmPath = await VersionListHelper.suggestedJavaExecutable(javaMajor);
+  String jvmPath = await VersionListHelper.suggestedJava(instance.gameVersion, loader);
   MinecraftProfile result = MinecraftProfile.empty(jvmPath, loader, instance.gameVersion, loaderVersion, instanceFolder.path, source: OtherLauncher.curseforge);
   return [result];
 }

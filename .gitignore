@@ -20,3 +20,7 @@ bolt
 # dart run build_runner build
 **/*.g.dart
 docs/.obsidian
+gui/.flutter-plugins
+gui/.flutter-plugins-dependencies
+gui/macos/Flutter/ephemeral/Flutter-Generated.xcconfig
+gui/macos/Flutter/ephemeral/flutter_export_environment.sh
