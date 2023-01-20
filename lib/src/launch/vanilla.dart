@@ -10,7 +10,7 @@ class VanillaLauncher extends GameLauncher {
 
   @override
   Future<void> loadMetadata() async {
-    vanillaMetadata = (await VanillaInstaller.getMetadata(minecraftVersion))!;
+    vanillaMetadata = (await VanillaInstaller.getMetadata(minecraftVersion, realLoader: modLoader))!;
   }
 
   @override

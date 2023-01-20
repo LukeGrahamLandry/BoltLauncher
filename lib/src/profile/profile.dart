@@ -53,7 +53,8 @@ class MinecraftProfile {
   }
 
   String toString(){
-    return "Minecraft $minecraftVersion $loader ${loaderVersion == "0" ? "" : "$loaderVersion "}at $gameDirectory";
+    
+    return "Minecraft $minecraftVersion ${loader == VersionListHelper.VANILLA.name ? "" : "$loader $loaderVersion "}at $gameDirectory";
   }
 
   factory MinecraftProfile.fromJson(Map<String, dynamic> json) => _$MinecraftProfileFromJson(json);

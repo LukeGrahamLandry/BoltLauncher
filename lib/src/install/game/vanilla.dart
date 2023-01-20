@@ -48,13 +48,12 @@ class VanillaInstaller extends GameInstaller {
 	Future<bool> install() async {
     log(StartInstall());
 
-		var metadata = await getMetadata(minecraftVersion);
+		var metadata = await getMetadata(minecraftVersion, realLoader: realLoader);
     if (metadata == null){
      log(VersionNotFound());
 			return false;
 		}
 
-    lwjglArmNatives(minecraftVersion, realLoader, metadata);
 		await download(metadata);
 
     log(EndInstall());
@@ -65,13 +64,14 @@ class VanillaInstaller extends GameInstaller {
 
   }
 
-  static Future<vanilla.VersionFiles?> getMetadata(String versionId) async {
+  static Future<vanilla.VersionFiles?> getMetadata(String versionId, {String realLoader = "vanilla"}) async {
     vanilla.VersionList versionData = await MetadataCache.vanillaVersions;
 		for (var version in versionData.versions){
         if (version.id == versionId) {
           var libs = vanilla.VersionFiles.fromJson(await cachedFetchJson(version.url, "vanilla/${version.id}.json"));
           libs.downloads!.client.version = versionId;
           libs.downloads!.client.name = "client";
+          lwjglArmNatives(versionId, realLoader, libs);
           return libs;
         }
     }

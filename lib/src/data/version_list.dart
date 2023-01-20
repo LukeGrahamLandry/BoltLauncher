@@ -3,7 +3,6 @@ import 'package:bolt_launcher/src/api_models/java_metadata.dart';
 import 'package:bolt_launcher/src/data/cache.dart';
 import 'package:bolt_launcher/src/api_models/fabric_metadata.dart' as fabric;
 import 'package:bolt_launcher/src/install/util/meta_modifier.dart';
-import 'package:bolt_launcher/src/launch/base.dart';
 
 typedef LauncherFactory = GameLauncher Function(String minecraftVersion, String? loaderVersion, String gameDirectory);
 

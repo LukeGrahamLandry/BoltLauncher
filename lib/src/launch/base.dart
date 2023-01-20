@@ -35,6 +35,7 @@ abstract class GameLauncher {
     await Directory(gameDirectory).create(recursive: true);
     Process gameProcess = await Process.start(javaExecutable, args, workingDirectory: gameDirectory);
 
+    // TODO: now if the caller tries to listen to the process it crashes with Stream aready listened to
     gameProcess.stdout.listen((data) {
       log(GameStdout(gameDirectory, data));
     });

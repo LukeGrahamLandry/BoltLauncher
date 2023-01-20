@@ -10,7 +10,8 @@ export 'src/install/game/quilt.dart' show QuiltInstaller;
 export 'src/install/java.dart' show JavaFinder, JavaInstaller;
 export 'src/data/version_list.dart' show VersionListHelper, LoaderMeta, LauncherFactory;
 
-export 'src/launch/vanilla.dart' show GameLauncher, VanillaLauncher;
+export 'src/launch/base.dart' show GameLauncher;
+export 'src/launch/vanilla.dart' show VanillaLauncher;
 export 'src/launch/forge.dart' show ForgeLauncher;
 export 'src/launch/fabric.dart' show FabricLauncher;
 export 'src/launch/quilt.dart' show QuiltLauncher;

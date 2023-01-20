@@ -15,12 +15,6 @@ void profileCommand(List<String> arguments) async {
     int? index = int.tryParse(arguments[1]);
     if (index != null){
       var process = await profiles[index].launch();
-      process.stdout.listen((event) {
-        stdout.add(event);
-      });
-      process.stderr.listen((event) {
-        stdout.add(event);
-      });
       await process.exitCode;
       return;
     }
