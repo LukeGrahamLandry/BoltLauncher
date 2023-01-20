@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 import 'dart:io';
 import 'package:bolt_launcher/src/install/util/meta_modifier.dart';
@@ -28,9 +27,10 @@ void main(List<String> args) async {
     var loaderData = VersionListHelper.modLoaders[loaderName]!;
     List<String> minecraftVersions = ["1.19.3", "1.19.2", "1.18.2", "1.17.1", "1.16.5"];  // await loaderData.supportedMinecraftVersions;
     for (String minecraftVersion in minecraftVersions) {
-      String loaderVersion = await loaderData.recommendedVersion(minecraftVersion);
-      GameLauncher launcher = await loaderData.launcher(minecraftVersion, loaderVersion, path.join(Locations.dataDirectory, "instances", "test"));
+      String? loaderVersion = await loaderData.recommendedVersion(minecraftVersion);
+      GameLauncher launcher = loaderData.launcher(minecraftVersion, loaderVersion, path.join(Locations.dataDirectory, "instances", "test"));
       String java = await VersionListHelper.suggestedJava(minecraftVersion, loaderName);
+      await launcher.checkInstallation();
       Process game = await launcher.launch(java);
 
       String errors = "";

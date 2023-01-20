@@ -1,20 +1,17 @@
-
 import 'package:bolt_launcher/bolt_launcher.dart';
 import 'package:bolt_launcher/src/api_models/java_metadata.dart';
 import 'package:bolt_launcher/src/data/cache.dart';
-import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart' as vanilla;
 import 'package:bolt_launcher/src/api_models/fabric_metadata.dart' as fabric;
-import 'package:bolt_launcher/src/api_models/prism_metadata.dart' as prism;
 import 'package:bolt_launcher/src/install/util/meta_modifier.dart';
 import 'package:bolt_launcher/src/launch/base.dart';
 
-typedef LauncherFactory = Future<GameLauncher> Function(String minecraftVersion, String loaderVersion, String gameDirectory);
+typedef LauncherFactory = GameLauncher Function(String minecraftVersion, String? loaderVersion, String gameDirectory);
 
 abstract class LoaderMeta {
   String get name;
   Future<List<String>> get supportedMinecraftVersions => Future.value(["1.19.3", "1.19.2", "1.19.1", "1.19", "1.18.2", "1.18.1", "1.18", "1.17.1", "1.17", "1.16.5"]);
-  Future<List<String>> versions(String minecraftVersion) => Future.value(["0"]);
-  Future<String> recommendedVersion(String minecraftVersion) => Future.value("0");
+  Future<List<String>> versions(String minecraftVersion);
+  Future<String?> recommendedVersion(String minecraftVersion);
   bool get hasLoaderVersions => true;
   LauncherFactory get launcher;
 }
@@ -75,7 +72,7 @@ class ForgeLoaderMeta extends LoaderMeta {
   }
   
   @override
-  LauncherFactory get launcher => ForgeLauncher.create;
+  LauncherFactory get launcher => ForgeLauncher.new;
 }
 
 class FabricLoaderMeta extends LoaderMeta {
@@ -94,7 +91,7 @@ class FabricLoaderMeta extends LoaderMeta {
   }
   
   @override
-  LauncherFactory get launcher => FabricLauncher.create;
+  LauncherFactory get launcher => FabricLauncher.new;
 }
 
 class QuiltLoaderMeta extends LoaderMeta {
@@ -113,10 +110,16 @@ class QuiltLoaderMeta extends LoaderMeta {
   }
   
   @override
-  LauncherFactory get launcher => QuiltLauncher.create;
+  LauncherFactory get launcher => QuiltLauncher.new;
 }
 
 class VanillaLoaderMeta extends LoaderMeta {
+  @override
+  Future<List<String>> versions(String minecraftVersion) => Future.value([]);
+
+  @override
+  Future<String?> recommendedVersion(String minecraftVersion) => Future.value(null);
+
   @override
   String get name => "vanilla";
 
@@ -124,7 +127,5 @@ class VanillaLoaderMeta extends LoaderMeta {
   bool get hasLoaderVersions => false;
   
   @override
-  LauncherFactory get launcher => (minecraftVersion, loaderVersion, gameDirectory) {
-    return VanillaLauncher.create(minecraftVersion, gameDirectory);
-  };
+  LauncherFactory get launcher => VanillaLauncher.new;
 }

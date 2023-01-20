@@ -2,13 +2,8 @@ import 'dart:convert';
 import 'dart:io' show Directory, File, Platform, Process;
 import 'package:bolt_launcher/bolt_launcher.dart';
 import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart';
-import 'package:bolt_launcher/src/data/cache.dart';
-import 'package:bolt_launcher/src/install/util/downloader.dart';
-import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart' as vanilla;
 import 'package:bolt_launcher/src/loggers/event/launch.dart';
 import 'package:bolt_launcher/src/loggers/logger.dart';
-import 'package:bolt_launcher/src/install/util/remote_file.dart';
-
 import 'package:path/path.dart' as p;
 
 
@@ -16,7 +11,7 @@ abstract class GameLauncher {
   String minecraftVersion;
   String? loaderVersion;
   String gameDirectory;
-  GameLauncher.create(this.minecraftVersion, this.loaderVersion, this.gameDirectory);
+  GameLauncher(this.minecraftVersion, this.loaderVersion, this.gameDirectory);
 
   String get classpath;
   String get mainClass;
@@ -26,14 +21,28 @@ abstract class GameLauncher {
   String get modLoader;
 
   Future<void> checkInstallation() async {
+    await loadMetadata();
     await installer.install();
   }
 
+  Future<void> loadMetadata();
+
   Future<Process> launch(String javaExecutable) async {
+    await loadMetadata();
     List<String> args = [...jvmArgs, mainClass, ...minecraftArgs];
     log(StartGameProcess(gameDirectory, javaExecutable, args));
-    // TODO: log listens to stdout and stderr
-    return Process.start(javaExecutable, args, workingDirectory: gameDirectory);
+    
+    await Directory(gameDirectory).create(recursive: true);
+    Process gameProcess = await Process.start(javaExecutable, args, workingDirectory: gameDirectory);
+
+    gameProcess.stdout.listen((data) {
+      log(GameStdout(gameDirectory, data));
+    });
+    gameProcess.stderr.listen((data) {
+      log(GameStderr(gameDirectory, data));
+    });
+
+    return gameProcess;
   }
 
   void log(LaunchEvent event){

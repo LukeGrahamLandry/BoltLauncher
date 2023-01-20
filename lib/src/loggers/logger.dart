@@ -109,10 +109,22 @@ class Logger {
     if (event is StartGameProcess){
       logStr("Launching Minecraft ${event.id} with ${event.javaExecutable}");
     }
+
+    if (event is GameStdout){
+      logBytes(event.data);
+    }
+
+    if (event is GameStderr){
+      logBytes(event.data);
+    }
   }
 
   void logStr(String msg){
     print(msg);
+  }
+
+  void logBytes(List<int> data){
+    stdout.add(data);
   }
 }
 

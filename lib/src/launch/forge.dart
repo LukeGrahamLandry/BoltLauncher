@@ -13,18 +13,15 @@ import 'package:path/path.dart' as p;
 
 import '../api_models/vanilla_metadata.dart';
 
-class ForgeLauncher extends GameLauncher {
+class ForgeLauncher extends VanillaLauncher {
   late VersionFiles metadata;
-  late VanillaLauncher vanilla;
 
-  ForgeLauncher._create(String minecraftVersion, String loaderVersion, String gameDirectory): super.create(minecraftVersion, loaderVersion, gameDirectory);
+  ForgeLauncher(super.minecraftVersion, super.loaderVersion, super.gameDirectory);
 
-  static Future<ForgeLauncher> create(String minecraftVersion, String loaderVersion, String gameDirectory) async {
-    ForgeLauncher self = ForgeLauncher._create(minecraftVersion, loaderVersion, gameDirectory);
-    await self.checkInstallation();
-    self.metadata = await MetadataCache.forgeVersionData(minecraftVersion, loaderVersion);
-    self.vanilla = await VanillaLauncher.create(minecraftVersion, gameDirectory, doInstalledCheck: false);
-    return self;
+  @override
+  Future<void> loadMetadata() async {
+    await super.loadMetadata();
+    metadata = await MetadataCache.forgeVersionData(minecraftVersion, loaderVersion!);
   }
 
   @override
@@ -36,7 +33,7 @@ class ForgeLauncher extends GameLauncher {
 
     // fixes java.lang.IllegalStateException: Duplicate key on 1.18.2
     // java-objc-bridge-1.0.0.jar shows up twice in the version json, one on its own and one with the natives but the normal artifact is there again as well 
-    var jars = "${DownloadHelper.toClasspath(forgeLaunchLibs)}:${vanilla.classpath}".split(":").toSet();
+    var jars = "${DownloadHelper.toClasspath(forgeLaunchLibs)}:${super.classpath}".split(":").toSet();
     // var jars = "${vanilla.classpath}:${DownloadHelper.toClasspath(forgeLaunchLibs)}".split(":").toSet();  // crashes
     return jars.join(":");
   }
@@ -47,13 +44,13 @@ class ForgeLauncher extends GameLauncher {
   });
   
   @override
-  List<String> get jvmArgs => evalArgs(vanilla.metadata.arguments.jvm)..addAll(evalArgs(metadata.arguments.jvm));
+  List<String> get jvmArgs => super.jvmArgs..addAll(evalArgs(metadata.arguments.jvm));
   
   @override
   String get mainClass => metadata.mainClass;
   
   @override
-  List<String> get minecraftArgs => evalArgs(vanilla.metadata.arguments.game)..addAll(evalArgs(metadata.arguments.game));
+  List<String> get minecraftArgs => super.minecraftArgs..addAll(evalArgs(metadata.arguments.game));
   
   @override
   GameInstaller get installer => ForgeInstaller(minecraftVersion, loaderVersion!);

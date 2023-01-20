@@ -42,11 +42,6 @@ Future<void> run(List<String> arguments) async {
     return;
   }
 
-  if (program == "launch") {
-    await testLaunchMinecraft();
-    return;
-  }
-
   if (program == "list"){
       (await getProfiles()).forEach((key, value) {
           print("$key: $value");
@@ -72,34 +67,5 @@ Future<void> run(List<String> arguments) async {
   }
 
   if (program == "install") await installCommand(arguments);
-}
-
-Future<void> testLaunchMinecraft() async {
-  String versionId = "1.16.5";
-  // String loaderVersion = "40.2.0";
-  String gameDir = p.join(Locations.dataDirectory, "instances", "test");
-  // var installer = QuiltInstaller(versionId, "0.18.1-beta.26");
-  
-  Directory(gameDir).createSync(recursive: true);
-
-  var logs = File("log.txt");
-  var loaderInfo = VersionListHelper.FABRIC;
-  var loaderVersion = await loaderInfo.recommendedVersion(versionId);
-  var launcher = await loaderInfo.launcher(versionId, loaderVersion, gameDir);
-  var major = await VersionListHelper.suggestedJavaMajorVersion(versionId);
-
-  print("Starting Minecraft...");
-  var gameProcess = await launcher.launch(await VersionListHelper.suggestedJava(versionId, loaderInfo.name));
-  gameProcess.stdout.listen((data) {
-    stdout.add(data);
-    // logs.writeAsBytesSync(data, mode: FileMode.append);
-  });
-  gameProcess.stderr.listen((data) {
-    stdout.add(data);
-    // logs.writeAsBytesSync(data, mode: FileMode.append);
-  });
-
-  int result = await gameProcess.exitCode;
-  await Process.run("chmod", ["-v", "777", "command.sh"]);
-  print("Minecraft Ended (exit code = $result). Goodbye.");
+  if (program == "launch") await installCommand(arguments, launch: true);
 }

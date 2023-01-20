@@ -60,8 +60,8 @@ class MinecraftProfile {
   Map<String, dynamic> toJson() => _$MinecraftProfileToJson(this);
 
   Future<Process> launch() async {
-    GameLauncher launcher = await VersionListHelper.modLoaders[loader]!.launcher(minecraftVersion, loaderVersion, gameDirectory);
-    // the getter ^ calls create which checks installation for you already. 
+    GameLauncher launcher = VersionListHelper.modLoaders[loader]!.launcher(minecraftVersion, loaderVersion, gameDirectory);
+    await launcher.checkInstallation();
     return launcher.launch(jvmPath);
   }
 }

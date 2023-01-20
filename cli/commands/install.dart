@@ -1,3 +1,5 @@
+import 'package:bolt_launcher/src/launch/base.dart';
+
 import 'help.dart';
 import 'dart:io';
 import 'package:path/path.dart' as p;
@@ -5,7 +7,7 @@ import 'package:args/args.dart';
 
 import 'package:bolt_launcher/bolt_launcher.dart';
 
-Future<void> installCommand(List<String> arguments) async {
+Future<void> installCommand(List<String> arguments, {bool launch=false}) async {
   final parser = ArgParser()
                     ..addOption("version", abbr: 'v')
                     ..addOption("loader", abbr: 'l', defaultsTo: "vanilla")
@@ -25,8 +27,8 @@ Future<void> installCommand(List<String> arguments) async {
     }  
   } 
   
-  else if (args.wasParsed("version")) {
-    await installMinecraft((args["loader"] as String).toLowerCase(), args["version"], args["hashChecking"]);
+  else if (args.wasParsed("version")) {  // TODO: only launch if name specified so it knows what directory to use
+    await installMinecraft((args["loader"] as String).toLowerCase(), args["version"], args["hashChecking"], launch);
     if (args.wasParsed("name")){
       await createEmptyProfile(args["name"], args["loader"], args["version"]);
     } else {
@@ -39,7 +41,7 @@ Future<void> installCommand(List<String> arguments) async {
   }
 }
 
-Future<void> installMinecraft(String loader, String version, bool hashChecking) async {
+Future<void> installMinecraft(String loader, String version, bool hashChecking, bool launch) async {
   LoaderMeta? loaderInfo = VersionListHelper.modLoaders[loader];
 
   if (loaderInfo == null){
@@ -47,7 +49,12 @@ Future<void> installMinecraft(String loader, String version, bool hashChecking) 
     return;
   }
 
-  await loaderInfo.launcher.call(version, await loaderInfo.recommendedVersion(version), "");
+  GameLauncher launcher = loaderInfo.launcher(version, await loaderInfo.recommendedVersion(version), "instance/instances/test");
+  await launcher.checkInstallation();
+  if (launch) {
+    Process game = await launcher.launch(await VersionListHelper.suggestedJava(version, loader));
+    await game.exitCode;
+  }
 }
 
 Future<void> createEmptyProfile(String name, String loader, String version) async {
