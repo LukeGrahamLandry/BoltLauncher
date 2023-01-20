@@ -16,14 +16,14 @@ mixin FabricInstallerSettings {
 
   Future<fabric.VersionFiles> versionFilesMetadata(String minecraftVersion, String loaderVersion) => MetadataCache.fabricVersionData(minecraftVersion, loaderVersion);  
 
-  String loaderName = "Fabric";
+  String loaderName = VersionListHelper.FABRIC.name;
 }
 
 class FabricInstaller extends GameInstaller with FabricInstallerSettings {
   FabricInstaller(String minecraftVersion, String loaderVersion) : super(minecraftVersion, loaderVersion);
 
   @override
-  String get modLoader => loaderName.toLowerCase();
+  String get modLoader => loaderName;
 
   @override
   Future<bool> install() async {

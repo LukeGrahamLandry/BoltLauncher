@@ -22,12 +22,14 @@ class VersionListHelper {
   static LoaderMeta QUILT = QuiltLoaderMeta();
   static LoaderMeta FORGE = ForgeLoaderMeta();
 
-  static Map<String, LoaderMeta> modLoaders = {
-    "vanilla": VANILLA,
-    "fabric": FABRIC,
-    "quilt": QUILT,
-    "forge": FORGE
-  };
+  static final List<LoaderMeta> _modLoaders = [
+    VANILLA,
+    FABRIC, 
+    QUILT,
+    FORGE
+  ];
+
+  static Map<String, LoaderMeta> modLoaders = Map.fromEntries(_modLoaders.map((e) => MapEntry(e.name, e)));
 
   static int suggestedJavaMajorVersion(String minecraftVersion) {  // TODO: should read from metadata
     int mcMinorVersion = int.parse(minecraftVersion.split(".")[1]);

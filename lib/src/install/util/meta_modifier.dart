@@ -1,6 +1,7 @@
 
 import 'dart:io';
 
+import 'package:bolt_launcher/bolt_launcher.dart';
 import 'package:bolt_launcher/src/api_models/java_metadata.dart';
 import 'package:bolt_launcher/src/api_models/vanilla_metadata.dart' as vanilla;
 
@@ -8,7 +9,7 @@ bool supportsAppleSilicon(String mcVersion, String loader){
   int major = int.parse(mcVersion.split(".")[1]);
 
   if (major >= 18) return true;
-  if (mcVersion == "1.16.5" && loader == "forge") return true;
+  if (mcVersion == "1.16.5" && loader == VersionListHelper.FORGE.name) return true;
 
   return false;
 }
@@ -21,13 +22,13 @@ String? forcedLwjglVersion(String mcVersion, String loader){
 
   // crash: no icons cocoa. needs mixin
   // if (mcVersion.startsWith("1.17")) return "3.3.1";
-  if (mcVersion == "1.16.5" && loader == "forge") return "3.3.1";  // forge patched the crash
+  if (mcVersion == "1.16.5" && loader == VersionListHelper.FORGE.name) return "3.3.1";  // forge patched the crash
   
   return null;
 }
 
-void lwjglArmNatives(String mcVersion, String modloader, vanilla.VersionFiles metadata){
-  String? lwjglVersion = forcedLwjglVersion(mcVersion, "forge");  // TODO: need to pass this in
+void lwjglArmNatives(String mcVersion, String modLoader, vanilla.VersionFiles metadata){
+  String? lwjglVersion = forcedLwjglVersion(mcVersion, modLoader); 
   if (lwjglVersion == null) return;
 
   for (var lib in metadata.libraries){

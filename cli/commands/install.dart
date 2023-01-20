@@ -10,7 +10,7 @@ import 'package:bolt_launcher/bolt_launcher.dart';
 Future<void> installCommand(List<String> arguments, {bool launch=false}) async {
   final parser = ArgParser()
                     ..addOption("version", abbr: 'v')
-                    ..addOption("loader", abbr: 'l', defaultsTo: "vanilla")
+                    ..addOption("loader", abbr: 'l', defaultsTo: VersionListHelper.VANILLA.name)
                     ..addOption("url", abbr: 'u')
                     ..addOption("name", abbr: 'n')
                     ..addOption("path", abbr: 'p', defaultsTo: "[${Branding.dataDirEnvVarName}]/instances/[NAME]")

@@ -21,7 +21,7 @@ class ForgeInstaller extends GameInstaller {
   ForgeInstaller(String minecraftVersion, String loaderVersion) : super(minecraftVersion, loaderVersion);
 
   @override
-  String get modLoader => "forge";
+  String get modLoader => VersionListHelper.FORGE.name;
 
   @override
   Future<bool> install() async {
@@ -214,7 +214,7 @@ class ForgeProcessors {
   }
 
   void log(InstallEvent event){
-    event.init("forge", minecraftVersion, loaderVersion);
+    event.init(VersionListHelper.FORGE.name, minecraftVersion, loaderVersion);
     Logger.instance.log(event);
   }
 }

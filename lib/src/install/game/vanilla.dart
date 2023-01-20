@@ -42,7 +42,7 @@ class VanillaInstaller extends GameInstaller {
 	VanillaInstaller(String versionId, {this.realLoader = "vanilla"}) : super(versionId, null);
 
   @override
-  String get modLoader => "vanilla";
+  String get modLoader => VersionListHelper.VANILLA.name;
 
   @override
 	Future<bool> install() async {

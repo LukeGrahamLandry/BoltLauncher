@@ -14,7 +14,7 @@ class VanillaLauncher extends GameLauncher {
   }
 
   @override
-  String get modLoader => "vanilla";
+  String get modLoader => VersionListHelper.VANILLA.name;
 
   @override
   List<String> get jvmArgs => evalArgs(vanillaMetadata.arguments.jvm);

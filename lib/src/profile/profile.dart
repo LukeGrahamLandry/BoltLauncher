@@ -29,7 +29,7 @@ enum OtherLauncher {
 class MinecraftProfile {
   String minecraftVersion;
   String loader;
-  String loaderVersion;
+  String? loaderVersion;
   String gameDirectory;
 
   String? packUrl;   

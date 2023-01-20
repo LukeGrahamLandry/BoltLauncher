@@ -29,8 +29,8 @@ Future<List<MinecraftProfile>> importCurseforgeInstance(Directory instanceFolder
 
   cf.MinecraftInstance instance = cf.MinecraftInstance.fromJson(jsonDecode(await info.readAsString()));
 
-  String loader = "vanilla";
-  String? loaderVersion = "0";
+  String loader = VersionListHelper.VANILLA.name;
+  String? loaderVersion;
   if (instance.baseModLoader != null){
     loader = instance.baseModLoader!.name.split("-")[0];
     loaderVersion = instance.baseModLoader!.forgeVersion!;  // they call the variable that even for fabric  

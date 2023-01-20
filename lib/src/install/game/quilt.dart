@@ -20,7 +20,7 @@ mixin QuiltInstallerSettings on FabricInstallerSettings {
   Future<fabric.VersionFiles> versionFilesMetadata(String minecraftVersion, String loaderVersion) => MetadataCache.quiltVersionData(minecraftVersion, loaderVersion);
   
   @override
-  String loaderName = "Quilt";
+  String loaderName = VersionListHelper.QUILT.name;
 }
 
 class QuiltInstaller extends FabricInstaller with QuiltInstallerSettings {

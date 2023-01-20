@@ -15,7 +15,7 @@ class FabricLauncher extends VanillaLauncher with FabricInstallerSettings {
   }
 
   @override
-  String get modLoader => loaderName.toLowerCase();
+  String get modLoader => loaderName;
   
   @override
   String get classpath {

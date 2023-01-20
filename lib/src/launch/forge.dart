@@ -25,7 +25,7 @@ class ForgeLauncher extends VanillaLauncher {
   }
 
   @override
-  String get modLoader => "forge";
+  String get modLoader => VersionListHelper.FORGE.name;
   
   @override
   String get classpath {
