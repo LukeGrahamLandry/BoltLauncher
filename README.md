@@ -16,7 +16,7 @@ can handle everything behind the scenes and you can focus on providing a great i
 
 - Install & Launch Minecraft
     - forge, fabric, quilt, vanilla
-    - 1.19.x
+    - 1.19.x, 1.18.x, 1.17.x, 1.16.x
 - (WIP) Install Java 
 - (WIP) Microsoft Auth
 - (WIP) Manage game profiles with different mods

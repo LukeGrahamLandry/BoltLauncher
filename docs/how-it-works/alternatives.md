@@ -1,3 +1,5 @@
+This page is an examination of other minecraft launcher libraries as a starting point for building a white labeled custom launcher for your project. 
+
 ## [dscalzi/HeliosLauncher](https://github.com/dscalzi/HeliosLauncher)
 
 - electron app

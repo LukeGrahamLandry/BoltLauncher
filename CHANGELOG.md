@@ -1,4 +1,8 @@
 
+## 23.01.19-dev
+
+- better apple silicon support by bumping lwjgl for 1.18.x and forge 1.16.5
+
 ## 23.01.14-dev
 
 - find curseforge profiles and can launch from their directory
