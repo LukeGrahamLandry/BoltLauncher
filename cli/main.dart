@@ -1,7 +1,6 @@
 import 'package:bolt_launcher/src/api_models/java_metadata.dart';
 import 'package:bolt_launcher/src/data/cache.dart';
 import 'package:bolt_launcher/src/install/java.dart';
-import 'package:bolt_launcher/src/install/mods/curseforge.dart';
 import 'package:bolt_launcher/src/launch/forge.dart';
 import 'package:bolt_launcher/src/profile/import.dart';
 import 'package:bolt_launcher/src/profile/profile.dart';
@@ -22,7 +21,7 @@ Future<void> main(List<String> arguments) async {
   await saveAllCaches();  // TODO: this should happen before launching the game process
 
   // this may want to delete metadata so should happen after the files are saved again. 
-  if (arguments[0] == "clear") await clearCommand(arguments);
+  if (arguments.isNotEmpty && arguments[0] == "clear") await clearCommand(arguments);
 }
 
 Future<void> run(List<String> arguments) async {
@@ -47,11 +46,6 @@ Future<void> run(List<String> arguments) async {
           print("$key: $value");
       });
       return;
-  }
-
-  if (program == "mod") {
-    await downloadFromCurseMaven("267602", "2642375", "instance/mods");
-    return;
   }
 
   if (program == "profile") {

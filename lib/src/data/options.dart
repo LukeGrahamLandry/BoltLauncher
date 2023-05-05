@@ -5,14 +5,10 @@ import 'package:path/path.dart' as path;
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-
-// maybe split commands 'bolt meta trust --key value' and 'bolt meta misc --key value'
-
 class GlobalOptions {
   static bool recomputeHashesBeforeLaunch = true;  // TODO: unused cause i stopped using manifest cause sym links
   static bool checkHashesAfterDownload = true;
   // static bool checkSignaturesOnDownload = true;  // TODO
-  // static String pgpCommand = "gpg"
 
   static MetaSources metadataUrls = MetaSources.initial();
 
@@ -69,7 +65,6 @@ class Branding {
   static String dataDirectoryName = name;
   static String dataDirEnvVarName = "BOLT_LAUNCHER_FOLDER";
   static String azureClientId = bool.hasEnvironment("AZURE_CLIENT_ID") ? String.fromEnvironment("AZURE_CLIENT_ID") : "";
-  static String updatesAppCastUrl = "";
 
   static String privacyPolicy = 
 """

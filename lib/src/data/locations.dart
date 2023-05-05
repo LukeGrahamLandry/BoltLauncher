@@ -11,7 +11,7 @@ class Locations {
   static String get dataDirectory {
     String defaultLocation;
     if (Platform.isMacOS) {
-      defaultLocation = path.join(homeDirectory, "Library", "Application Support", Branding.dataDirectoryName);
+      defaultLocation = path.join(homeDirectory, ".${Branding.dataDirectoryName}");
     } else if (Platform.isWindows) {
       defaultLocation = path.join(homeDirectory, "AppData", Branding.dataDirectoryName);
     } else {

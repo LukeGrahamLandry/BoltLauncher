@@ -14,7 +14,8 @@ Future<void> installCommand(List<String> arguments, {bool launch=false}) async {
                     ..addOption("url", abbr: 'u')
                     ..addOption("name", abbr: 'n')
                     ..addOption("path", abbr: 'p', defaultsTo: "[${Branding.dataDirEnvVarName}]/instances/[NAME]")
-                    ..addFlag("hashChecking", negatable: true, defaultsTo: true);
+                    ..addFlag("hashChecking", negatable: true, defaultsTo: true)
+                    ..addFlag("noAssets", defaultsTo: false);
 
   ArgResults args = parser.parse(arguments);
   String path = (args["path"] as String).replaceAll("[${Branding.dataDirEnvVarName}]", Locations.dataDirectory).replaceAll("[NAME]", args["name"] ?? "");
@@ -28,7 +29,7 @@ Future<void> installCommand(List<String> arguments, {bool launch=false}) async {
   } 
   
   else if (args.wasParsed("version")) {  // TODO: only launch if name specified so it knows what directory to use
-    await installMinecraft((args["loader"] as String).toLowerCase(), args["version"], args["hashChecking"], launch);
+    await installMinecraft((args["loader"] as String).toLowerCase(), args["version"], args["hashChecking"], args["noAssets"], launch);
     if (args.wasParsed("name")){
       await createEmptyProfile(args["name"], args["loader"], args["version"]);
     } else {
@@ -41,7 +42,8 @@ Future<void> installCommand(List<String> arguments, {bool launch=false}) async {
   }
 }
 
-Future<void> installMinecraft(String loader, String version, bool hashChecking, bool launch) async {
+// TODO: noAssets to not download sounds, etc
+Future<void> installMinecraft(String loader, String version, bool hashChecking, bool noAssets, bool launch) async {
   LoaderMeta? loaderInfo = VersionListHelper.modLoaders[loader];
 
   if (loaderInfo == null){
